@@ -1670,17 +1670,25 @@ function requestPhone() {
     showToast('Функция доступна в Telegram');
     return;
   }
-  tg.onEvent('contactRequested', (result) => {
-    const phone = result?.contact?.phone_number
-      || tg.initDataUnsafe?.contact?.phone_number;
+  tg.requestContact((ok) => {
+    let phone = '';
+    if (ok) {
+      phone = tg.initDataUnsafe?.contact?.phone_number || '';
+    }
+    if (!phone && tg.initDataUnsafe?.user?.id) {
+      // попробуем из responseUnsafeData если есть
+      phone = tg.responseUnsafeData?.contact?.phone_number || '';
+    }
     if (phone) {
+      if (!phone.startsWith('+')) phone = '+' + phone;
       document.getElementById('input-phone').value = phone;
       const btn = document.getElementById('contact-btn');
       btn.textContent = '✓ Номер получен';
       btn.classList.add('done');
+    } else if (ok) {
+      showToast('Не удалось получить номер — введите вручную');
     }
   });
-  tg.requestContact();
 }
 
 let selectedPay = 'cash';
