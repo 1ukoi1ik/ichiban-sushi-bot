@@ -1713,12 +1713,16 @@ async function placeOrder() {
   const orderNum = '#' + Math.floor(1000 + Math.random() * 9000);
 
   try {
-    await fetch(`${API_URL}/order`, {
+    const res = await fetch(`${API_URL}/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum })
     });
-  } catch(e) {}
+    if (!res.ok) showToast('⚠️ Ошибка сервера: ' + res.status);
+  } catch(e) {
+    showToast('⚠️ Нет связи с сервером');
+    console.error('Order fetch error:', e);
+  }
 
   localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 1 }));
   document.getElementById('order-number').textContent = orderNum;
