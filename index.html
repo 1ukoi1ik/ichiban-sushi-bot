@@ -1713,9 +1713,9 @@ async function placeOrder() {
   if (!name) { showToast('Введите имя'); return; }
   if (!addr) { showToast('Введите адрес доставки'); return; }
 
-  const items = Object.entries(cart).map(([id, qty]) => {
+  const items = Object.entries(cart).map(([id, entry]) => {
     const item = MENU.find(m => m.id === +id);
-    return { name: item.name, qty, price: item.price };
+    return { name: item.name, qty: entry.qty, price: item.price };
   });
   const total = getCartSum();
   const orderNum = '#' + Math.floor(1000 + Math.random() * 9000);
