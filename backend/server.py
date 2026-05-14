@@ -65,10 +65,10 @@ class OrderItem(BaseModel):
 
 class Order(BaseModel):
     name: str
-    phone: str
+    phone: str = ""
     address: str
     comment: str = ""
-    payment: str
+    payment: str = "Наличными курьеру"
     items: List[OrderItem]
     total: int
     order_num: Optional[str] = None
