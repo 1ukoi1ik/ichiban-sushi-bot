@@ -1773,6 +1773,23 @@ function showToast(msg) {
 renderMenu();
 updateOpenStatus();
 showActiveOrderBanner();
+
+setInterval(async () => {
+  const order = JSON.parse(localStorage.getItem('ichi_active_order') || 'null');
+  if (!order || order.step >= 4) return;
+  try {
+    const res = await fetch(`${API_URL}/order-status/${encodeURIComponent(order.num)}`);
+    const data = await res.json();
+    if (data.ok && data.step !== order.step) {
+      order.step = data.step;
+      localStorage.setItem('ichi_active_order', JSON.stringify(order));
+      showActiveOrderBanner();
+      if (data.step === 4) showToast('🏠 Заказ доставлен!');
+      else if (data.step === 3) showToast('🛵 Курьер уже едет!');
+      else if (data.step === 2) showToast('👨‍🍳 Ресторан начал готовить');
+    }
+  } catch(e) {}
+}, 10000);
 </script>
 </body>
 </html>
