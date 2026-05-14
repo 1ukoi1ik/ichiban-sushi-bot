@@ -1,9 +1,8 @@
 import os
-import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 import httpx
 from dotenv import load_dotenv
 
@@ -18,7 +17,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["POST"],
+    allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )
 
@@ -37,10 +36,12 @@ class Order(BaseModel):
     payment: str
     items: List[OrderItem]
     total: int
+    order_num: Optional[str] = None
 
 
 def format_order(order: Order) -> str:
-    lines = ["🍣 *Новый заказ — Ichiban Sushi*\n"]
+    num = order.order_num or "—"
+    lines = [f"🍣 *Новый заказ {num} — Ichiban Sushi*\n"]
     for item in order.items:
         lines.append(f"• {item.name} × {item.qty} — {item.price * item.qty:,} ₽")
     lines.append(f"\n💰 *Итого: {order.total:,} ₽*")
