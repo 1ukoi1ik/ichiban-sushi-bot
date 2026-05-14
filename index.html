@@ -1727,8 +1727,9 @@ async function placeOrder() {
       body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum })
     });
     if (!res.ok) showToast('⚠️ Ошибка сервера: ' + res.status);
+    else showToast('✅ Заказ отправлен на кухню');
   } catch(e) {
-    showToast('⚠️ Нет связи с сервером');
+    showToast('⚠️ Ошибка: ' + e.message);
     console.error('Order fetch error:', e);
   }
 
