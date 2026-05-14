@@ -1767,8 +1767,9 @@ function showActiveOrderBanner() {
   const s = order.step || 1;
   steps.forEach((id, i) => {
     const el = document.getElementById(id);
-    el.classList.toggle('done', i+1 < s);
-    el.classList.toggle('active', i+1 === s);
+    el.classList.remove('done', 'active');
+    if (i+1 < s) el.classList.add('done');
+    else if (i+1 === s) el.classList.add('active');
   });
   const labels = ['Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
   document.getElementById('banner-order-status').textContent = labels[(s-1)] || 'Готовим';
