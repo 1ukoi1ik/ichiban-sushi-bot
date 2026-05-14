@@ -1080,17 +1080,121 @@ html, body {
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ══════════ PICKER ══════════ */
+.picker-screen {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 0 24px;
+}
+.picker-header {
+  padding: 0 20px 24px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+.picker-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sub);
+  margin-top: 6px;
+  letter-spacing: 0;
+}
+.picker-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 12px;
+}
+.picker-item:active { background: rgba(255,255,255,0.04); }
+.picker-item-emoji { font-size: 24px; width: 32px; text-align: center; }
+.picker-item-label { flex: 1; }
+.picker-item-arrow { color: var(--sub2); font-size: 18px; }
+
+/* Кнопка Change */
+.change-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 50;
+  background: rgba(8,8,8,0.65);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
 </style>
 </head>
 <body>
 
+<!-- ══ SCREEN: PICKER ══ -->
+<div id="screen-picker" class="screen">
+  <div class="picker-screen">
+    <div class="picker-header">
+      Выберите демо
+      <div class="picker-sub">Нажмите на кухню чтобы открыть</div>
+    </div>
+    <div class="picker-item" onclick="selectBrand('sushi')">
+      <span class="picker-item-emoji">🍣</span>
+      <span class="picker-item-label">Суши / Роллы</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('pizza')">
+      <span class="picker-item-emoji">🍕</span>
+      <span class="picker-item-label">Пицца</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('burger')">
+      <span class="picker-item-emoji">🍔</span>
+      <span class="picker-item-label">Бургеры</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('shawarma')">
+      <span class="picker-item-emoji">🌯</span>
+      <span class="picker-item-label">Шаурма</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('pasta')">
+      <span class="picker-item-emoji">🍝</span>
+      <span class="picker-item-label">Паста / Итальянская</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('georgian')">
+      <span class="picker-item-emoji">🥩</span>
+      <span class="picker-item-label">Грузинская кухня</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('ramen')">
+      <span class="picker-item-emoji">🍜</span>
+      <span class="picker-item-label">Рамен / Азия</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+  </div>
+</div>
+
 <!-- ══ SCREEN: MENU ══ -->
-<div id="screen-menu" class="screen">
+<div id="screen-menu" class="screen hidden">
   <div class="hero">
     <div class="hero-bg" id="hero-bg"></div>
     <div class="hero-overlay"></div>
+    <button class="change-btn" onclick="changeBrand()">← Change</button>
     <div class="hero-content">
-      <div class="restaurant-name">Ichiban Sushi</div>
+      <div class="restaurant-name" id="restaurant-name">Ichiban Sushi</div>
       <div class="hero-status-row">
         <div class="restaurant-badge" id="open-badge">● Открыто сейчас</div>
       </div>
@@ -1103,32 +1207,7 @@ html, body {
       <span>☰</span>
       <span class="cat-active-label" id="cat-trigger-label">Категории</span>
       <span class="cat-trigger-arrow">▼</span>
-      <div class="cat-dropdown" id="cat-dropdown">
-        <div class="cat-option active" data-cat="top" onclick="pickCat('top',event)">
-          <span class="cat-opt-dot"></span>⭐ Хиты
-        </div>
-        <div class="cat-option" data-cat="rolls" onclick="pickCat('rolls',event)">
-          <span class="cat-opt-dot"></span>🌀 Роллы
-        </div>
-        <div class="cat-option" data-cat="hot" onclick="pickCat('hot',event)">
-          <span class="cat-opt-dot"></span>🔥 Горячие
-        </div>
-        <div class="cat-option" data-cat="sets" onclick="pickCat('sets',event)">
-          <span class="cat-opt-dot"></span>📦 Сеты
-        </div>
-        <div class="cat-option" data-cat="soups" onclick="pickCat('soups',event)">
-          <span class="cat-opt-dot"></span>🍜 Супы
-        </div>
-        <div class="cat-option" data-cat="salads" onclick="pickCat('salads',event)">
-          <span class="cat-opt-dot"></span>🥗 Салаты
-        </div>
-        <div class="cat-option" data-cat="desserts" onclick="pickCat('desserts',event)">
-          <span class="cat-opt-dot"></span>🍡 Десерты
-        </div>
-        <div class="cat-option" data-cat="drinks" onclick="pickCat('drinks',event)">
-          <span class="cat-opt-dot"></span>🥤 Напитки
-        </div>
-      </div>
+      <div class="cat-dropdown" id="cat-dropdown"></div>
     </div>
 
     <!-- О нас -->
@@ -1301,90 +1380,184 @@ const hImg = new Image();
 hImg.onload = () => { heroBg.style.backgroundImage = `url('${hImg.src}')`; heroBg.classList.add('loaded'); };
 hImg.src = 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&q=85';
 
-const MENU = [
-  // ROLLS
-  { id:1, cat:'rolls', name:'Филадельфия', price:490, weight:'240г',
-    desc:'Нежный норвежский лосось холодного копчения, бархатистый сыр Philadelphia и хрустящий огурец. Подаётся с соусом унаги.',
-    tags:['hit'], cal:'320 ккал',
-    img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85' },
-  { id:2, cat:'rolls', name:'Калифорния', price:380, weight:'220г',
-    desc:'Сурими из натурального краба, авокадо, огурец, тобико. Классика, ставшая символом японской кухни.',
-    tags:['hit'], cal:'280 ккал',
-    img:'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&q=85' },
-  { id:3, cat:'rolls', name:'Дракон', price:570, weight:'260г',
-    desc:'Хрустящая креветка темпура внутри, слайсы авокадо снаружи. Полит острым майонезом и унаги.',
-    tags:['hot','hit'], cal:'410 ккал',
-    img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85' },
-  { id:4, cat:'rolls', name:'Радуга', price:640, weight:'280г',
-    desc:'Семь видов рыбы: лосось, тунец, желтохвост, лакедра, угорь, морской окунь и икура. Шедевр.',
-    tags:['new'], cal:'360 ккал',
-    img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85' },
-  { id:5, cat:'rolls', name:'Эби темпура', price:450, weight:'250г',
-    desc:'Тигровая креветка в хрустящем кляре темпура, огурец, икра тобико, соус спайси.',
-    tags:['hot'], cal:'390 ккал',
-    img:'https://images.unsplash.com/photo-1607301406259-dfb186e15de8?w=600&q=85' },
-  { id:6, cat:'rolls', name:'Тунец Спайси', price:520, weight:'240г',
-    desc:'Нарезанный тунец с соусом спайси, перец чили, кунжут. Для любителей острого.',
-    tags:['hot','new'], cal:'300 ккал',
-    img:'https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?w=600&q=85' },
-  // HOT
-  { id:7, cat:'hot', name:'Жареные роллы с лососем', price:520, weight:'280г',
-    desc:'Классические роллы обжаренные в темпурном кляре до золотистой корочки. Нежнейшая начинка внутри.',
-    tags:['hit','hot'], cal:'450 ккал',
-    img:'https://images.unsplash.com/photo-1598514983318-2f64f8f4796c?w=600&q=85' },
-  { id:8, cat:'hot', name:'Запечённый с сыром', price:490, weight:'260г',
-    desc:'Роллы с крабом запечены со сливочным сыром и икрой масаго под золотистой корочкой.',
-    tags:['hit'], cal:'480 ккал',
-    img:'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=600&q=85' },
-  // SETS
-  { id:9, cat:'sets', name:'Сет «Для двоих»', price:990, weight:'480г',
-    desc:'32 ролла: Филадельфия ×8, Калифорния ×8, Дракон ×8, Темпура ×8. Идеально на двоих.',
-    tags:['hit'], cal:'1100 ккал',
-    img:'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&q=85' },
-  { id:10, cat:'sets', name:'Сет «Большой»', price:1490, weight:'920г',
-    desc:'64 ролла всех видов. Для большой компании или настоящего ценителя японской кухни.',
-    tags:['hit'], cal:'2200 ккал',
-    img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85' },
-  { id:11, cat:'sets', name:'Сет «Острый»', price:870, weight:'480г',
-    desc:'32 ролла только острых позиций: Дракон, Тунец Спайси, Эби Темпура и Дьявол.',
-    tags:['hot','new'], cal:'1300 ккал',
-    img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85' },
-  // SOUPS
-  { id:12, cat:'soups', name:'Мисо-суп', price:190, weight:'350мл',
-    desc:'Традиционный японский суп с шёлковым тофу, водорослями вакамэ и зелёным луком. Бульон даши.',
-    tags:[], cal:'85 ккал',
-    img:'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&q=85' },
-  { id:13, cat:'soups', name:'Рамен с курицей', price:370, weight:'500мл',
-    desc:'Насыщенный куриный бульон, пшеничная лапша, филе курицы су-вид, яйцо аджицке, нори, ростки сои.',
-    tags:['hit'], cal:'420 ккал',
-    img:'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=85' },
-  // SALADS
-  { id:14, cat:'salads', name:'Чука с кунжутом', price:280, weight:'180г',
-    desc:'Маринованные водоросли чука с кунжутным маслом, кунжутом и рисовым уксусом. Свежо и пикантно.',
-    tags:['new'], cal:'160 ккал',
-    img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=85' },
-  { id:15, cat:'salads', name:'Тайский с манго', price:340, weight:'220г',
-    desc:'Хрустящий салат с манго, авокадо, карамелизованным арахисом и кисло-сладким соусом.',
-    tags:['new','hit'], cal:'210 ккал',
-    img:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&q=85' },
-  // DESSERTS
-  { id:16, cat:'desserts', name:'Маки с клубникой', price:290, weight:'160г',
-    desc:'Сладкий рис с маскарпоне, свежая клубника и шоколадный соус. Десертная версия классики.',
-    tags:['new'], cal:'310 ккал',
-    img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=85' },
-  // DRINKS
-  { id:17, cat:'drinks', name:'Матча латте', price:250, weight:'350мл',
-    desc:'Японский зелёный чай маття с нежной молочной пеной. Заряд антиоксидантов и тонизирующего L-теанина.',
-    tags:['new'], cal:'120 ккал',
-    img:'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=85' },
-  { id:18, cat:'drinks', name:'Лимонад юдзу', price:220, weight:'400мл',
-    desc:'Домашний лимонад с японским цитрусом юдзу, мятой, тростниковым сахаром и газированной водой.',
-    tags:['hit'], cal:'95 ккал',
-    img:'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=600&q=85' }
-];
+const BRANDS = {
+  sushi: {
+    name: 'Ichiban Sushi', red: '#E8321A', orange: '#FF6A1A',
+    hero: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'rolls',label:'🌀 Роллы'},{key:'hot',label:'🔥 Горячие'},
+      {key:'sets',label:'📦 Сеты'},{key:'soups',label:'🍜 Супы'},{key:'salads',label:'🥗 Салаты'},
+      {key:'desserts',label:'🍡 Десерты'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'rolls', name:'Филадельфия', price:490, weight:'240г', desc:'Нежный норвежский лосось холодного копчения, бархатистый сыр Philadelphia и хрустящий огурец.', tags:['hit'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85' },
+      { id:2, cat:'rolls', name:'Калифорния', price:380, weight:'220г', desc:'Сурими из натурального краба, авокадо, огурец, тобико. Классика японской кухни.', tags:['hit'], cal:'280 ккал', img:'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&q=85' },
+      { id:3, cat:'rolls', name:'Дракон', price:570, weight:'260г', desc:'Хрустящая креветка темпура внутри, слайсы авокадо снаружи. Полит острым майонезом.', tags:['hot','hit'], cal:'410 ккал', img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85' },
+      { id:4, cat:'rolls', name:'Радуга', price:640, weight:'280г', desc:'Семь видов рыбы: лосось, тунец, желтохвост, лакедра, угорь, морской окунь и икура.', tags:['new'], cal:'360 ккал', img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85' },
+      { id:5, cat:'rolls', name:'Эби темпура', price:450, weight:'250г', desc:'Тигровая креветка в хрустящем кляре темпура, огурец, икра тобико, соус спайси.', tags:['hot'], cal:'390 ккал', img:'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=85' },
+      { id:6, cat:'rolls', name:'Тунец Спайси', price:520, weight:'240г', desc:'Нарезанный тунец с соусом спайси, перец чили, кунжут. Для любителей острого.', tags:['hot','new'], cal:'300 ккал', img:'https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?w=600&q=85' },
+      { id:7, cat:'hot', name:'Жареные с лососем', price:520, weight:'280г', desc:'Классические роллы обжаренные в темпурном кляре до золотистой корочки.', tags:['hit','hot'], cal:'450 ккал', img:'https://images.unsplash.com/photo-1598514983318-2f64f8f4796c?w=600&q=85' },
+      { id:8, cat:'hot', name:'Запечённый с сыром', price:490, weight:'260г', desc:'Роллы с крабом запечены со сливочным сыром и икрой масаго.', tags:['hit'], cal:'480 ккал', img:'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=600&q=85' },
+      { id:9, cat:'sets', name:'Сет «Для двоих»', price:990, weight:'480г', desc:'32 ролла: Филадельфия ×8, Калифорния ×8, Дракон ×8, Темпура ×8.', tags:['hit'], cal:'1100 ккал', img:'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&q=85' },
+      { id:10, cat:'sets', name:'Сет «Большой»', price:1490, weight:'920г', desc:'64 ролла всех видов. Для большой компании или настоящего ценителя.', tags:['hit'], cal:'2200 ккал', img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85' },
+      { id:11, cat:'soups', name:'Мисо-суп', price:190, weight:'350мл', desc:'Традиционный японский суп с тофу, водорослями вакамэ и зелёным луком.', tags:[], cal:'85 ккал', img:'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&q=85' },
+      { id:12, cat:'soups', name:'Рамен с курицей', price:370, weight:'500мл', desc:'Насыщенный куриный бульон, пшеничная лапша, яйцо аджицке, нори.', tags:['hit'], cal:'420 ккал', img:'https://images.unsplash.com/photo-1591814468924-caf88d1232e1?w=600&q=85' },
+      { id:13, cat:'drinks', name:'Матча латте', price:250, weight:'350мл', desc:'Японский зелёный чай маття с нежной молочной пеной.', tags:['new'], cal:'120 ккал', img:'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=85' },
+      { id:14, cat:'drinks', name:'Лимонад юдзу', price:220, weight:'400мл', desc:'Домашний лимонад с японским цитрусом юдзу, мятой и газированной водой.', tags:['hit'], cal:'95 ккал', img:'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=600&q=85' },
+    ]
+  },
+  pizza: {
+    name: 'Napoli Pizza', red: '#D62828', orange: '#F77F00',
+    hero: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'classic',label:'🍕 Классика'},{key:'special',label:'✨ Особые'},
+      {key:'sets',label:'📦 Комбо'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'classic', name:'Маргарита', price:490, weight:'400г', desc:'Томатный соус, моцарелла, свежий базилик. Классика неаполитанской пиццы.', tags:['hit'], cal:'750 ккал', img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=85' },
+      { id:2, cat:'classic', name:'Пепперони', price:590, weight:'420г', desc:'Острая итальянская салями, томатный соус, двойная моцарелла.', tags:['hit','hot'], cal:'820 ккал', img:'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&q=85' },
+      { id:3, cat:'classic', name:'Четыре сыра', price:650, weight:'410г', desc:'Моцарелла, горгонзола, пармезан и рикотта. Нежный сливочный вкус.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=85' },
+      { id:4, cat:'special', name:'Гавайская', price:540, weight:'430г', desc:'Ветчина, ананас, моцарелла, томатный соус. Спорная, но любимая.', tags:['new'], cal:'780 ккал', img:'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=600&q=85' },
+      { id:5, cat:'special', name:'BBQ Курица', price:610, weight:'450г', desc:'Куриное филе, соус BBQ, красный лук, моцарелла, кинза.', tags:['hit'], cal:'850 ккал', img:'https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=600&q=85' },
+      { id:6, cat:'special', name:'Дьябло', price:630, weight:'420г', desc:'Острая салями, халапеньо, перец чили, томатный соус, моцарелла.', tags:['hot','new'], cal:'870 ккал', img:'https://images.unsplash.com/photo-1548369937-47519962c11a?w=600&q=85' },
+      { id:7, cat:'special', name:'Морская', price:690, weight:'440г', desc:'Креветки, кальмары, мидии, соус песто, моцарелла, лимон.', tags:['new'], cal:'760 ккал', img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=85' },
+      { id:8, cat:'sets', name:'Комбо 2 пиццы', price:990, weight:'800г', desc:'Любые 2 пиццы классической линейки. Выбирай сам.', tags:['hit'], cal:'1600 ккал', img:'https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Лимонад', price:180, weight:'400мл', desc:'Домашний лимонад с лимоном, мятой и газированной водой.', tags:[], cal:'90 ккал', img:'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Тирамису', price:290, weight:'150г', desc:'Классический итальянский десерт с маскарпоне и кофе.', tags:['hit'], cal:'380 ккал', img:'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=85' },
+    ]
+  },
+  burger: {
+    name: 'Burger Bros', red: '#E76F51', orange: '#F4A261',
+    hero: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'burgers',label:'🍔 Бургеры'},{key:'sides',label:'🍟 Гарниры'},
+      {key:'sets',label:'📦 Комбо'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'burgers', name:'Классик', price:390, weight:'250г', desc:'Говяжья котлета, листья салата, томат, огурец, соус тысяча островов.', tags:['hit'], cal:'550 ккал', img:'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=85' },
+      { id:2, cat:'burgers', name:'Чизбургер', price:420, weight:'270г', desc:'Говяжья котлета, двойной чеддер, маринованные огурцы, горчица, кетчуп.', tags:['hit'], cal:'620 ккал', img:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=600&q=85' },
+      { id:3, cat:'burgers', name:'Двойной', price:550, weight:'380г', desc:'Две котлеты, двойной сыр, бекон, лук, соус. Для настоящих мужчин.', tags:['hit'], cal:'850 ккал', img:'https://images.unsplash.com/photo-1609167830220-7164aa360951?w=600&q=85' },
+      { id:4, cat:'burgers', name:'Барбекю', price:490, weight:'300г', desc:'Котлета, хрустящий бекон, карамелизованный лук, соус BBQ, чеддер.', tags:['hit','new'], cal:'710 ккал', img:'https://images.unsplash.com/photo-1586816001966-79b736744398?w=600&q=85' },
+      { id:5, cat:'burgers', name:'Острый', price:440, weight:'260г', desc:'Котлета, соус халапеньо, перец чили, маринованные огурцы, чеддер.', tags:['hot'], cal:'640 ккал', img:'https://images.unsplash.com/photo-1581009137042-c552e485697a?w=600&q=85' },
+      { id:6, cat:'burgers', name:'Куриный', price:380, weight:'240г', desc:'Хрустящее куриное филе, листья салата, томат, соус ранч.', tags:['hit'], cal:'480 ккал', img:'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=600&q=85' },
+      { id:7, cat:'sides', name:'Картошка фри', price:180, weight:'200г', desc:'Хрустящая картошка фри с морской солью.', tags:['hit'], cal:'350 ккал', img:'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=600&q=85' },
+      { id:8, cat:'sides', name:'Луковые кольца', price:220, weight:'180г', desc:'Сладкий лук в хрустящем кляре. Идеально к бургеру.', tags:['new'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1542574621-e088a4464f7e?w=600&q=85' },
+      { id:9, cat:'sets', name:'Комбо бургер+фри', price:520, weight:'450г', desc:'Любой бургер + картошка фри + напиток. Выгодно.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Молочный шейк', price:280, weight:'400мл', desc:'Ванильный, шоколадный или клубничный. Густой и холодный.', tags:['hit'], cal:'420 ккал', img:'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=85' },
+    ]
+  },
+  shawarma: {
+    name: 'Shawarma King', red: '#606C38', orange: '#DDA15E',
+    hero: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'shawarma',label:'🌯 Шаурма'},{key:'sides',label:'🥙 Дополнения'},
+      {key:'sets',label:'📦 Комбо'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'shawarma', name:'Классическая', price:290, weight:'350г', desc:'Курица, капуста, томат, огурец, чеснок, соус, лаваш. Проверенная годами.', tags:['hit'], cal:'580 ккал', img:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&q=85' },
+      { id:2, cat:'shawarma', name:'Острая', price:310, weight:'350г', desc:'Курица, острый перец, маринованные огурцы, перечный соус, лаваш.', tags:['hot','hit'], cal:'590 ккал', img:'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600&q=85' },
+      { id:3, cat:'shawarma', name:'Сырная', price:340, weight:'380г', desc:'Курица, расплавленный сыр, томат, огурец, сметанный соус.', tags:['new'], cal:'650 ккал', img:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=600&q=85' },
+      { id:4, cat:'shawarma', name:'Двойная', price:420, weight:'500г', desc:'Двойная порция мяса, все начинки, два соуса. Для голодных.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=600&q=85' },
+      { id:5, cat:'shawarma', name:'С говядиной', price:360, weight:'370г', desc:'Говяжье мясо, капуста, томат, лук, чесночный соус.', tags:['new'], cal:'620 ккал', img:'https://images.unsplash.com/photo-1606755456206-b25206cde27e?w=600&q=85' },
+      { id:6, cat:'sides', name:'Картошка по-деревенски', price:180, weight:'200г', desc:'Запечённый картофель с розмарином и морской солью.', tags:['hit'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=600&q=85' },
+      { id:7, cat:'sets', name:'Комбо шаурма+картошка', price:420, weight:'550г', desc:'Классическая шаурма + картошка + напиток.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=85' },
+      { id:8, cat:'drinks', name:'Айран', price:120, weight:'300мл', desc:'Холодный кисломолочный напиток. Освежает.', tags:['hit'], cal:'80 ккал', img:'https://images.unsplash.com/photo-1571091655789-405eb7a3a3a8?w=600&q=85' },
+    ]
+  },
+  pasta: {
+    name: 'La Pasta', red: '#BC6C25', orange: '#DDA15E',
+    hero: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'pasta',label:'🍝 Паста'},{key:'pizza',label:'🍕 Пицца'},
+      {key:'desserts',label:'🍮 Десерты'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'pasta', name:'Карбонара', price:490, weight:'320г', desc:'Паста с беконом, яичным желтком, пармезаном и чёрным перцем. Рим в тарелке.', tags:['hit'], cal:'680 ккал', img:'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600&q=85' },
+      { id:2, cat:'pasta', name:'Болоньезе', price:520, weight:'350г', desc:'Домашняя паста с мясным рагу, томатами и пармезаном. Готовится 4 часа.', tags:['hit'], cal:'720 ккал', img:'https://images.unsplash.com/photo-1588013273468-315fd88ea34c?w=600&q=85' },
+      { id:3, cat:'pasta', name:'Альфредо', price:470, weight:'310г', desc:'Фетучини, сливочный соус, пармезан. Нежно и сытно.', tags:['hit'], cal:'750 ккал', img:'https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=600&q=85' },
+      { id:4, cat:'pasta', name:'Арабьята', price:440, weight:'300г', desc:'Пенне, томатный соус, перец чили, чеснок. Острая классика.', tags:['hot'], cal:'580 ккал', img:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=85' },
+      { id:5, cat:'pasta', name:'Морская', price:590, weight:'340г', desc:'Лингвине с креветками, мидиями, кальмарами в соусе из белого вина.', tags:['new'], cal:'620 ккал', img:'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=85' },
+      { id:6, cat:'pizza', name:'Маргарита', price:490, weight:'400г', desc:'Томатный соус, моцарелла, базилик. Классика.', tags:['hit'], cal:'750 ккал', img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=85' },
+      { id:7, cat:'pizza', name:'Четыре сыра', price:650, weight:'410г', desc:'Моцарелла, горгонзола, пармезан и рикотта.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=85' },
+      { id:8, cat:'desserts', name:'Тирамису', price:320, weight:'180г', desc:'Классический итальянский десерт с маскарпоне, кофе и савоярди.', tags:['hit'], cal:'380 ккал', img:'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Эспрессо', price:120, weight:'30мл', desc:'Насыщенный итальянский эспрессо из арабики.', tags:[], cal:'10 ккал', img:'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Лимончелло (б/а)', price:180, weight:'200мл', desc:'Безалкогольный лимонный напиток с мятой и газированной водой.', tags:['new'], cal:'85 ккал', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=85' },
+    ]
+  },
+  georgian: {
+    name: 'Кавказ', red: '#6B2737', orange: '#C1440E',
+    hero: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'hot',label:'🔥 Горячее'},{key:'grill',label:'🥩 Гриль'},
+      {key:'cold',label:'🥗 Закуски'},{key:'soups',label:'🍲 Супы'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'hot', name:'Хачапури по-аджарски', price:490, weight:'380г', desc:'Лодочка из теста с сыром сулугуни, яйцом и сливочным маслом. Горячее.', tags:['hit'], cal:'820 ккал', img:'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&q=85' },
+      { id:2, cat:'hot', name:'Хинкали', price:420, weight:'360г', desc:'6 штук. Сочные пельмени с говядиной, свининой, луком и специями.', tags:['hit'], cal:'540 ккал', img:'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=85' },
+      { id:3, cat:'grill', name:'Шашлык свиной', price:650, weight:'300г', desc:'Свиная шея на углях, маринованная в луке и специях. С соусом ткемали.', tags:['hit'], cal:'680 ккал', img:'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&q=85' },
+      { id:4, cat:'grill', name:'Люля-кебаб', price:590, weight:'280г', desc:'Рубленая баранина на шампуре со специями. Подаётся с лавашем.', tags:['hot'], cal:'640 ккал', img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=85' },
+      { id:5, cat:'soups', name:'Харчо', price:380, weight:'450мл', desc:'Наваристый суп из говядины с рисом, грецкими орехами и тклапи.', tags:['hit','hot'], cal:'420 ккал', img:'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?w=600&q=85' },
+      { id:6, cat:'cold', name:'Пхали', price:290, weight:'200г', desc:'Три вида: из шпината, свёклы и фасоли с грецкими орехами и зеленью.', tags:['new'], cal:'180 ккал', img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=85' },
+      { id:7, cat:'hot', name:'Оджахури', price:590, weight:'350г', desc:'Жареная свинина с картофелем, луком и зеленью на сковороде.', tags:['hit'], cal:'760 ккал', img:'https://images.unsplash.com/photo-1504544750208-dc0358e63f7f?w=600&q=85' },
+      { id:8, cat:'hot', name:'Чкмерули', price:620, weight:'400г', desc:'Цыплёнок в молочно-чесночном соусе. Нежнейшее мясо.', tags:['hit','new'], cal:'720 ккал', img:'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Лимонад тархун', price:150, weight:'350мл', desc:'Освежающий напиток с эстрагоном. Классика Кавказа.', tags:['hit'], cal:'95 ккал', img:'https://images.unsplash.com/photo-1546173159-315724a31696?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Компот', price:120, weight:'350мл', desc:'Домашний компот из сухофруктов.', tags:[], cal:'80 ккал', img:'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&q=85' },
+    ]
+  },
+  ramen: {
+    name: 'Ramen House', red: '#1B4332', orange: '#52B788',
+    hero: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'ramen',label:'🍜 Рамен'},{key:'hot',label:'🥟 Закуски'},
+      {key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'ramen', name:'Тонкоцу', price:490, weight:'500мл', desc:'Насыщенный бульон из свиных костей, рамен, чашу, яйцо аджицке, нори, бамбук.', tags:['hit'], cal:'580 ккал', img:'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=85' },
+      { id:2, cat:'ramen', name:'Мисо рамен', price:470, weight:'500мл', desc:'Бульон с пастой мисо, кукуруза, масло, мясо чашу, яйцо, нори.', tags:['hit'], cal:'540 ккал', img:'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=85' },
+      { id:3, cat:'ramen', name:'Спайси рамен', price:510, weight:'500мл', desc:'Острый бульон с кимчи, тофу, кунжутом и зелёным луком.', tags:['hot','new'], cal:'520 ккал', img:'https://images.unsplash.com/photo-1578020190125-f4f7c18bc9cb?w=600&q=85' },
+      { id:4, cat:'ramen', name:'Том Ям', price:460, weight:'450мл', desc:'Тайский кислый суп с креветками, грибами и лемонграссом.', tags:['hot','hit'], cal:'480 ккал', img:'https://images.unsplash.com/photo-1559847844-5315695dadae?w=600&q=85' },
+      { id:5, cat:'hot', name:'Гёдза', price:320, weight:'200г', desc:'6 штук. Жареные пельмени с свининой и капустой. Соус понзу.', tags:['hit'], cal:'380 ккал', img:'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=85' },
+      { id:6, cat:'hot', name:'Удон с курицей', price:440, weight:'400г', desc:'Толстая пшеничная лапша с курицей терияки и овощами.', tags:['hit'], cal:'520 ккал', img:'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=600&q=85' },
+      { id:7, cat:'hot', name:'Вок с говядиной', price:520, weight:'380г', desc:'Говядина, лапша, болгарский перец, брокколи, соус соевый.', tags:['new'], cal:'560 ккал', img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85' },
+      { id:8, cat:'hot', name:'Dim Sum', price:390, weight:'240г', desc:'8 штук. Паровые пельмени с уткой и грибами шиитаке.', tags:['new'], cal:'340 ккал', img:'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Матча латте', price:250, weight:'350мл', desc:'Японский зелёный чай маття с молоком.', tags:['hit'], cal:'120 ккал', img:'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Японский лимонад', price:190, weight:'400мл', desc:'Газированный лимонад с юдзу и мятой.', tags:[], cal:'80 ккал', img:'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=85' },
+    ]
+  },
+};
 
+let MENU = BRANDS.sushi.menu;
+let currentBrandKey = 'sushi';
 let cart = JSON.parse(localStorage.getItem('ichi_cart') || '{}');
 let currentCat = 'top';
+
+function selectBrand(key) {
+  const b = BRANDS[key];
+  if (!b) return;
+  currentBrandKey = key;
+  MENU = b.menu;
+  cart = {};
+  saveCart();
+  document.documentElement.style.setProperty('--red', b.red);
+  document.documentElement.style.setProperty('--orange', b.orange);
+  const heroBgEl = document.getElementById('hero-bg');
+  if (heroBgEl) {
+    const img = new Image();
+    img.onload = () => { heroBgEl.style.backgroundImage = `url('${img.src}')`; heroBgEl.classList.add('loaded'); };
+    img.src = b.hero;
+  }
+  const nameEl = document.getElementById('restaurant-name');
+  if (nameEl) nameEl.textContent = b.name;
+  renderCats(key);
+  renderMenu();
+  showScreen('screen-menu');
+}
+
+function changeBrand() {
+  cart = {};
+  saveCart();
+  showScreen('screen-picker');
+}
 
 function saveCart() { localStorage.setItem('ichi_cart', JSON.stringify(cart)); }
 function getCartCount() { return Object.values(cart).reduce((s,x)=>s+x.qty,0); }
@@ -1477,6 +1650,8 @@ function pickCat(cat, e) {
   });
   document.getElementById('cat-dropdown').classList.remove('open');
   document.getElementById('cat-trigger').classList.remove('open');
+  const label = document.getElementById('cat-trigger-label');
+  if (label && CAT_NAMES[cat]) label.textContent = CAT_NAMES[cat];
   renderMenu();
 }
 
@@ -1499,7 +1674,21 @@ function filterCat(cat, btnEl) {
   renderMenu();
 }
 
-const CAT_NAMES = { top:'⭐ Хиты', rolls:'Роллы', hot:'Горячие', sets:'Сеты', soups:'Супы', salads:'Салаты', desserts:'Десерты', drinks:'Напитки' };
+let CAT_NAMES = { top:'⭐ Хиты', rolls:'Роллы', hot:'Горячие', sets:'Сеты', soups:'Супы', salads:'Салаты', desserts:'Десерты', drinks:'Напитки' };
+
+function renderCats(brandKey) {
+  const b = BRANDS[brandKey];
+  if (!b || !b.cats) return;
+  CAT_NAMES = {};
+  b.cats.forEach(c => { CAT_NAMES[c.key] = c.label; });
+  const dd = document.getElementById('cat-dropdown');
+  dd.innerHTML = b.cats.map(c =>
+    `<div class="cat-option${c.key==='top'?' active':''}" data-cat="${c.key}" onclick="pickCat('${c.key}',event)"><span class="cat-opt-dot"></span>${c.label}</div>`
+  ).join('');
+  const label = document.getElementById('cat-trigger-label');
+  if (label) label.textContent = b.cats[0].label;
+  currentCat = 'top';
+}
 const TAG_MAP = { hot:'Острое', new:'Новинка', hit:'Хит' };
 
 function renderMenu() {
@@ -1776,6 +1965,7 @@ function showToast(msg) {
 }
 
 renderMenu();
+showScreen('screen-picker');
 updateOpenStatus();
 showActiveOrderBanner();
 
