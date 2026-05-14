@@ -1715,7 +1715,7 @@ async function placeOrder() {
     const res = await fetch(`${API_URL}/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum })
+      body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum, user_id: tg?.initDataUnsafe?.user?.id || null })
     });
     if (!res.ok) showToast('⚠️ Ошибка сервера: ' + res.status);
     else showToast('✅ Заказ отправлен на кухню');

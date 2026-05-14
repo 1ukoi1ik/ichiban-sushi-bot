@@ -18,6 +18,13 @@ TG_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 STEP_LABELS = {1: "Принят ✓", 2: "Готовим 👨‍🍳", 3: "В пути 🛵", 4: "Доставлен 🏠"}
 
+CLIENT_MESSAGES = {
+    1: "✅ Ваш заказ принят! Мы уже начинаем его готовить.",
+    2: "👨‍🍳 Ваш заказ готовится! Совсем скоро будет готов.",
+    3: "🛵 Ваш заказ у курьера! Ожидайте доставку.",
+    4: "🏠 Вы получили заказ. Приятного аппетита! 🍣",
+}
+
 
 def get_db():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
@@ -34,8 +41,13 @@ def init_db():
                     phone TEXT,
                     address TEXT,
                     total INTEGER,
+                    user_id BIGINT,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
+            """)
+            # добавить колонку если её нет (для старых БД)
+            cur.execute("""
+                ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id BIGINT
             """)
         conn.commit()
 
@@ -71,6 +83,7 @@ class Order(BaseModel):
     items: List[OrderItem]
     total: int
     order_num: Optional[str] = None
+    user_id: Optional[int] = None
 
 
 def make_status_keyboard(order_num: str, current_step: int):
@@ -104,8 +117,8 @@ async def receive_order(order: Order):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO orders (order_num, step, name, phone, address, total) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=1",
-                (num, 1, order.name, order.phone, order.address, order.total)
+                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=1, user_id=%s",
+                (num, 1, order.name, order.phone, order.address, order.total, order.user_id, order.user_id)
             )
         conn.commit()
 
@@ -117,6 +130,12 @@ async def receive_order(order: Order):
 
     async with httpx.AsyncClient() as client:
         await client.post(f"{TG_API}/sendMessage", json=payload)
+        # уведомить клиента о приёме заказа
+        if order.user_id:
+            await client.post(f"{TG_API}/sendMessage", json={
+                "chat_id": order.user_id,
+                "text": f"{CLIENT_MESSAGES[1]}\n\n🧾 Заказ {num} на сумму {order.total:,} ₽"
+            })
 
     return {"ok": True}
 
@@ -146,9 +165,13 @@ async def telegram_webhook(request: Request):
     _, order_num, step_str = cb_data.split(":")
     step = int(step_str)
 
+    user_id = None
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE orders SET step=%s WHERE order_num=%s", (step, order_num))
+            cur.execute("UPDATE orders SET step=%s WHERE order_num=%s RETURNING user_id", (step, order_num))
+            row = cur.fetchone()
+            if row:
+                user_id = row["user_id"]
         conn.commit()
 
     label = STEP_LABELS.get(step, "")
@@ -159,18 +182,23 @@ async def telegram_webhook(request: Request):
 
     keyboard = make_status_keyboard(order_num, step)
     async with httpx.AsyncClient() as client:
-        payload = {
+        await client.post(f"{TG_API}/editMessageText", json={
             "chat_id": callback["message"]["chat"]["id"],
             "message_id": callback["message"]["message_id"],
             "text": new_text,
             "parse_mode": "Markdown",
             "reply_markup": keyboard if keyboard else {"inline_keyboard": []},
-        }
-        await client.post(f"{TG_API}/editMessageText", json=payload)
+        })
         await client.post(f"{TG_API}/answerCallbackQuery", json={
             "callback_query_id": callback["id"],
             "text": f"Статус: {label}"
         })
+        # уведомить клиента
+        if user_id and step in CLIENT_MESSAGES:
+            await client.post(f"{TG_API}/sendMessage", json={
+                "chat_id": user_id,
+                "text": f"{CLIENT_MESSAGES[step]}\n\n🧾 Заказ {order_num}"
+            })
 
     return {"ok": True}
 
