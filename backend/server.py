@@ -1,5 +1,6 @@
 import os
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,32 +13,30 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+DATABASE_URL = os.getenv("DATABASE_URL")
 TG_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
-
-DB_PATH = "orders.db"
 
 STEP_LABELS = {1: "Принят ✓", 2: "Готовим 👨‍🍳", 3: "В пути 🛵", 4: "Доставлен 🏠"}
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
 def init_db():
     with get_db() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS orders (
-                order_num TEXT PRIMARY KEY,
-                step INTEGER DEFAULT 1,
-                name TEXT,
-                phone TEXT,
-                address TEXT,
-                total INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS orders (
+                    order_num TEXT PRIMARY KEY,
+                    step INTEGER DEFAULT 1,
+                    name TEXT,
+                    phone TEXT,
+                    address TEXT,
+                    total INTEGER,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
         conn.commit()
 
 
@@ -90,7 +89,8 @@ def format_order(order: Order) -> str:
     lines.append(f"\n💰 *Итого: {order.total:,} ₽*")
     lines.append(f"💳 Оплата: {order.payment}")
     lines.append(f"\n👤 {order.name}")
-    lines.append(f"📱 {order.phone}")
+    if order.phone:
+        lines.append(f"📱 {order.phone}")
     lines.append(f"📍 {order.address}")
     if order.comment:
         lines.append(f"💬 {order.comment}")
@@ -102,10 +102,11 @@ def format_order(order: Order) -> str:
 async def receive_order(order: Order):
     num = order.order_num or "#0000"
     with get_db() as conn:
-        conn.execute(
-            "INSERT OR REPLACE INTO orders (order_num, step, name, phone, address, total) VALUES (?,?,?,?,?,?)",
-            (num, 1, order.name, order.phone, order.address, order.total)
-        )
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO orders (order_num, step, name, phone, address, total) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=1",
+                (num, 1, order.name, order.phone, order.address, order.total)
+            )
         conn.commit()
 
     text = format_order(order)
@@ -123,7 +124,9 @@ async def receive_order(order: Order):
 @app.get("/order-status/{order_num}")
 async def get_order_status(order_num: str):
     with get_db() as conn:
-        row = conn.execute("SELECT step FROM orders WHERE order_num=?", (order_num,)).fetchone()
+        with conn.cursor() as cur:
+            cur.execute("SELECT step FROM orders WHERE order_num=%s", (order_num,))
+            row = cur.fetchone()
     if not row:
         return {"ok": False, "step": 1}
     return {"ok": True, "step": row["step"]}
@@ -144,14 +147,14 @@ async def telegram_webhook(request: Request):
     step = int(step_str)
 
     with get_db() as conn:
-        conn.execute("UPDATE orders SET step=? WHERE order_num=?", (step, order_num))
+        with conn.cursor() as cur:
+            cur.execute("UPDATE orders SET step=%s WHERE order_num=%s", (step, order_num))
         conn.commit()
 
     label = STEP_LABELS.get(step, "")
-    new_text = callback["message"]["text"]
-    # обновить строку статуса
-    lines = new_text.split("\n")
-    lines = [l if not l.startswith("📋 Статус:") else f"📋 Статус: {label}" for l in lines]
+    msg_text = callback["message"]["text"]
+    lines = msg_text.split("\n")
+    lines = [f"📋 Статус: {label}" if l.startswith("📋 Статус:") else l for l in lines]
     new_text = "\n".join(lines)
 
     keyboard = make_status_keyboard(order_num, step)
@@ -161,15 +164,12 @@ async def telegram_webhook(request: Request):
             "message_id": callback["message"]["message_id"],
             "text": new_text,
             "parse_mode": "Markdown",
+            "reply_markup": keyboard if keyboard else {"inline_keyboard": []},
         }
-        if keyboard:
-            payload["reply_markup"] = keyboard
-        else:
-            payload["reply_markup"] = {"inline_keyboard": []}
         await client.post(f"{TG_API}/editMessageText", json=payload)
         await client.post(f"{TG_API}/answerCallbackQuery", json={
             "callback_query_id": callback["id"],
-            "text": f"Статус обновлён: {label}"
+            "text": f"Статус: {label}"
         })
 
     return {"ok": True}
