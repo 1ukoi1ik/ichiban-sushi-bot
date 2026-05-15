@@ -140,6 +140,26 @@ async def receive_order(order: Order):
     return {"ok": True}
 
 
+@app.get("/orders/history/{user_id}")
+async def get_order_history(user_id: int):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT order_num, step, total, created_at FROM orders WHERE user_id=%s ORDER BY created_at DESC LIMIT 50",
+                (user_id,)
+            )
+            rows = cur.fetchall()
+    return {"ok": True, "orders": [
+        {
+            "num": r["order_num"],
+            "step": r["step"],
+            "total": r["total"],
+            "date": r["created_at"].strftime("%d %b %H:%M") if r["created_at"] else ""
+        }
+        for r in rows
+    ]}
+
+
 @app.get("/order-status/{order_num}")
 async def get_order_status(order_num: str):
     with get_db() as conn:
