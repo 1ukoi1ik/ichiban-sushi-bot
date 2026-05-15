@@ -1932,6 +1932,8 @@ function goToCheckout() {
   document.getElementById('address-toggle-btn').classList.remove('filled');
   document.getElementById('address-fields').style.display = 'none';
   document.getElementById('map-hint').textContent = 'Тапните по карте чтобы выбрать адрес';
+  document.getElementById('map-actions').style.display = 'none';
+  _mapExpanded = false;
   showScreen('screen-checkout');
 }
 
@@ -2135,7 +2137,13 @@ let _mapExpanded = false;
 
 function initAddrMap() {
   const CENTER = [48.5604, 39.3259];
-  if (_addrMap) { _addrMap.invalidateSize(); return; }
+  if (_addrMap) {
+    document.getElementById('address-map').style.height = '220px';
+    _addrMap.invalidateSize();
+    _addrMap.setView(CENTER, 15);
+    _addrMarker.setLatLng(CENTER);
+    return;
+  }
   _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(CENTER, 15);
   L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=ru_RU', { maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
   _addrMarker = L.marker(CENTER, { draggable: true }).addTo(_addrMap);
