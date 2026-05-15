@@ -441,7 +441,7 @@ html, body {
   overflow-x: scroll;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
+  scroll-snap-stop: always;
   scrollbar-width: none;
   height: 190px;
   gap: 0;
@@ -1817,6 +1817,7 @@ function renderCardMediaGallery(item) {
     ' onscroll="updateDots(' + item.id + ',this)"' +
     ' ontouchstart="onGalleryTouchStart(event)"' +
     ' ontouchmove="onGalleryTouchMove(event)"' +
+    ' ontouchend="onGalleryTouchEnd(' + item.id + ',event)"' +
     ' onclick="onGalleryClick(' + item.id + ',event)">' +
     slides + '</div>' +
     '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
@@ -1953,6 +1954,18 @@ function onGalleryTouchMove(e) {
   var dx = Math.abs(e.touches[0].clientX - _galleryTouchStartX);
   var dy = Math.abs(e.touches[0].clientY - _galleryTouchStartY);
   if (dx > 8 && dx > dy) _galleryDidSwipe = true;
+}
+function onGalleryTouchEnd(id, e) {
+  if (!_galleryDidSwipe) return;
+  var gallery = document.getElementById('gallery-' + id);
+  if (!gallery) return;
+  var w = gallery.offsetWidth;
+  var cur = Math.round(gallery.scrollLeft / w);
+  var dx = e.changedTouches[0].clientX - _galleryTouchStartX;
+  var next = dx < -30 ? cur + 1 : dx > 30 ? cur - 1 : cur;
+  var max = gallery.children.length - 1;
+  next = Math.max(0, Math.min(next, max));
+  gallery.scrollTo({ left: next * w, behavior: 'smooth' });
 }
 function onGalleryTap(id) {
   if (_galleryDidSwipe) return;
