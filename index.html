@@ -367,6 +367,7 @@ html, body {
   height: 190px;
   overflow: hidden;
   background: var(--surface);
+  border-radius: 20px 20px 0 0;
 }
 .card-image {
   width: 100%;
@@ -482,7 +483,12 @@ html, body {
 }
 
 /* CARD BODY */
-.card-body { padding: 12px 14px 14px; }
+.card-body {
+  padding: 12px 14px 14px;
+  background: var(--card);
+  border-radius: 0 0 20px 20px;
+  position: relative;
+}
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .card-name {
   font-family: var(--font-display);
@@ -1807,7 +1813,12 @@ function renderCardMediaGallery(item) {
     return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
   }).join('');
   return '<div class="card-gallery-wrap">' +
-    '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)" onclick="toggleCard(' + item.id + ',event)">' + slides + '</div>' +
+    '<div class="card-gallery" id="gallery-' + item.id + '"' +
+    ' onscroll="updateDots(' + item.id + ',this)"' +
+    ' ontouchstart="onGalleryTouchStart(event)"' +
+    ' ontouchmove="onGalleryTouchMove(event)"' +
+    ' onclick="onGalleryClick(' + item.id + ',event)">' +
+    slides + '</div>' +
     '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
     '<div class="card-cal-badge">' + item.cal + '</div>' +
   '</div>';
@@ -1929,9 +1940,32 @@ function updateDots(id, gallery) {
   dots.forEach((d, i) => d.classList.toggle('active', i === idx));
 }
 
+var _galleryTouchStartX = 0;
+var _galleryTouchStartY = 0;
+var _galleryDidSwipe = false;
+
+function onGalleryTouchStart(e) {
+  _galleryTouchStartX = e.touches[0].clientX;
+  _galleryTouchStartY = e.touches[0].clientY;
+  _galleryDidSwipe = false;
+}
+function onGalleryTouchMove(e) {
+  var dx = Math.abs(e.touches[0].clientX - _galleryTouchStartX);
+  var dy = Math.abs(e.touches[0].clientY - _galleryTouchStartY);
+  if (dx > 8 && dx > dy) _galleryDidSwipe = true;
+}
+function onGalleryTap(id) {
+  if (_galleryDidSwipe) return;
+  var card = document.getElementById('card-'+id);
+  card.classList.toggle('expanded');
+}
+function onGalleryClick(id, e) {
+  e.stopPropagation();
+  onGalleryTap(id);
+}
+
 function toggleCard(id, e) {
   if (e.target.tagName==='BUTTON') return;
-  if (e.target.closest('.card-gallery')) return;
   document.getElementById('card-'+id).classList.toggle('expanded');
 }
 
