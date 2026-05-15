@@ -360,6 +360,22 @@ html, body {
   border-color: rgba(232,50,26,0.35);
   box-shadow: 0 0 0 1px rgba(232,50,26,0.15), 0 12px 40px rgba(0,0,0,0.5);
 }
+.food-card.expanded .card-gallery-wrap,
+.food-card.expanded .card-image-wrap {
+  height: 280px;
+}
+.food-card.expanded .card-gallery,
+.food-card.expanded .card-gallery-slide img {
+  height: 280px;
+}
+.card-gallery-wrap,
+.card-image-wrap {
+  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-gallery,
+.card-gallery-slide img {
+  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* IMAGE */
 .card-image-wrap {
