@@ -345,7 +345,7 @@ html, body {
 .food-card {
   background: var(--card);
   border-radius: 20px;
-  overflow: hidden;
+  clip-path: inset(0 round 20px);
   border: 1px solid var(--border);
   cursor: pointer;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -439,7 +439,6 @@ html, body {
   scrollbar-width: none;
   height: 190px;
   gap: 0;
-  touch-action: pan-x;
 }
 .card-gallery::-webkit-scrollbar { display: none; }
 .card-gallery-slide {
@@ -1803,7 +1802,7 @@ function renderCardMediaGallery(item) {
   var dots = item.imgs.map(function(_, i) {
     return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
   }).join('');
-  return '<div class="card-gallery-wrap" style="position:relative;height:190px;overflow:hidden;border-radius:0">' +
+  return '<div style="position:relative;height:190px">' +
     '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)">' + slides + '</div>' +
     '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
     '<div class="card-cal-badge">' + item.cal + '</div>' +
