@@ -445,11 +445,15 @@ html, body {
   scrollbar-width: none;
   height: 190px;
   gap: 0;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .card-gallery::-webkit-scrollbar { display: none; }
 .card-gallery-slide {
   flex: 0 0 100%;
+  min-width: 100%;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   position: relative;
 }
 .card-gallery-slide img {
@@ -1954,19 +1958,13 @@ function onGalleryTouchStart(e) {
 function onGalleryTouchMove(e) {
   var dx = Math.abs(e.touches[0].clientX - _galleryTouchStartX);
   var dy = Math.abs(e.touches[0].clientY - _galleryTouchStartY);
-  if (dx > 8 && dx > dy) _galleryDidSwipe = true;
+  if (dx > 8 && dx > dy) {
+    _galleryDidSwipe = true;
+    e.preventDefault();
+  }
 }
 function onGalleryTouchEnd(id, e) {
-  if (!_galleryDidSwipe) return;
-  var gallery = document.getElementById('gallery-' + id);
-  if (!gallery) return;
-  var w = gallery.offsetWidth;
-  var cur = Math.round(gallery.scrollLeft / w);
-  var dx = e.changedTouches[0].clientX - _galleryTouchStartX;
-  var next = dx < -30 ? cur + 1 : dx > 30 ? cur - 1 : cur;
-  var max = gallery.children.length - 1;
-  next = Math.max(0, Math.min(next, max));
-  gallery.scrollTo({ left: next * w, behavior: 'smooth' });
+  // scroll-snap handles snapping automatically — no manual scrollTo needed
 }
 function onGalleryTap(id) {
   if (_galleryDidSwipe) return;
