@@ -431,8 +431,6 @@ html, body {
 
 /* Галерея фото */
 .card-gallery {
-  position: absolute;
-  inset: 0;
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1795,6 +1793,23 @@ function renderCats(brandKey) {
 }
 const TAG_MAP = { hot:'Острое', new:'Новинка', hit:'Хит' };
 
+function renderCardMediaGallery(item) {
+  var slides = item.imgs.map(function(src) {
+    return '<div class="card-gallery-slide" style="position:relative">' +
+      '<img data-src="' + src + '" alt="' + item.name + '" onload="this.classList.add(\'loaded\')" onerror="this.classList.add(\'loaded\')">' +
+      '<div class="card-grad"></div>' +
+    '</div>';
+  }).join('');
+  var dots = item.imgs.map(function(_, i) {
+    return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
+  }).join('');
+  return '<div class="card-gallery-wrap" style="position:relative;height:190px;overflow:hidden;border-radius:0">' +
+    '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)">' + slides + '</div>' +
+    '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
+    '<div class="card-cal-badge">' + item.cal + '</div>' +
+  '</div>';
+}
+
 function renderCardMedia(item) {
   if (item.imgs && item.imgs.length > 1) {
     var slides = item.imgs.map(function(src) {
@@ -1842,11 +1857,10 @@ function renderMenu() {
       html += `
         <div class="food-card" id="card-${item.id}" style="animation-delay:${idx*60}ms"
              onclick="toggleCard(${item.id},event)">
-          <div class="card-image-wrap" id="iwrap-${item.id}">
-            ${renderCardMedia(item)}
-            <div class="card-grad"></div>
-            <div class="card-cal-badge">${item.cal}</div>
-          </div>
+          ${item.imgs && item.imgs.length > 1
+            ? renderCardMediaGallery(item)
+            : '<div class="card-image-wrap" id="iwrap-' + item.id + '">' + renderCardMedia(item) + '<div class="card-grad"></div><div class="card-cal-badge">' + item.cal + '</div></div>'
+          }
           <div class="card-body">
             <div class="card-top">
               <div class="card-name">${item.name}</div>
