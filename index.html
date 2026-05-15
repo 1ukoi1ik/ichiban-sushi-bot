@@ -345,7 +345,6 @@ html, body {
 .food-card {
   background: var(--card);
   border-radius: 20px;
-  clip-path: inset(0 round 20px);
   border: 1px solid var(--border);
   cursor: pointer;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -430,9 +429,15 @@ html, body {
 }
 
 /* Галерея фото */
+.card-gallery-wrap {
+  position: relative;
+  height: 190px;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+}
 .card-gallery {
   display: flex;
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
@@ -445,7 +450,6 @@ html, body {
   flex: 0 0 100%;
   scroll-snap-align: start;
   position: relative;
-  overflow: hidden;
 }
 .card-gallery-slide img {
   width: 100%;
@@ -1802,8 +1806,8 @@ function renderCardMediaGallery(item) {
   var dots = item.imgs.map(function(_, i) {
     return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
   }).join('');
-  return '<div style="position:relative;height:190px">' +
-    '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)">' + slides + '</div>' +
+  return '<div class="card-gallery-wrap">' +
+    '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)" onclick="toggleCard(' + item.id + ',event)">' + slides + '</div>' +
     '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
     '<div class="card-cal-badge">' + item.cal + '</div>' +
   '</div>';
@@ -1927,6 +1931,7 @@ function updateDots(id, gallery) {
 
 function toggleCard(id, e) {
   if (e.target.tagName==='BUTTON') return;
+  if (e.target.closest('.card-gallery')) return;
   document.getElementById('card-'+id).classList.toggle('expanded');
 }
 
