@@ -2099,7 +2099,7 @@ function toggleAddressFields() {
 function initAddrMap() {
   if (_addrMap) { _addrMap.invalidateSize(); return; }
   _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView([48.5703, 39.3412], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(_addrMap);
+  L.tileLayer('https://tile{s}.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1', { subdomains: '0123' }).addTo(_addrMap);
   _addrMarker = L.marker([48.5703, 39.3412], { draggable: true }).addTo(_addrMap);
   _addrMap.on('click', (e) => moveMarkerAndGeocode(e.latlng));
   _addrMarker.on('dragend', () => moveMarkerAndGeocode(_addrMarker.getLatLng()));
