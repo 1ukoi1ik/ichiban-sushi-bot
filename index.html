@@ -2141,7 +2141,7 @@ function initAddrMap() {
   L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=ru_RU', { maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
   _addrMarker = L.marker(_center, { draggable: true }).addTo(_addrMap);
   _addrMap.on('click', (e) => {
-    if (!_mapExpanded) { expandMap(); return; }
+    if (!_mapExpanded) { expandMap(); }
     moveMarkerAndGeocode(e.latlng);
   });
   _addrMarker.on('dragend', () => moveMarkerAndGeocode(_addrMarker.getLatLng()));
