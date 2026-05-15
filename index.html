@@ -1186,7 +1186,6 @@ html, body {
   letter-spacing: 0.3px;
 }
 </style>
-<script src="https://api-maps.yandex.ru/v3/?apikey=cf21b4b1-6839-40d0-bc67-9a794d3877ef&lang=ru_RU" type="text/javascript"></script>
 </head>
 <body>
 
@@ -1322,7 +1321,7 @@ html, body {
       </button>
       <div id="address-fields" class="address-fields-expanded" style="display:none">
         <div id="address-map-wrap" style="position:relative;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border)">
-          <div id="address-map" style="height:220px;transition:height 0.3s ease"></div>
+          <div id="address-map" style="height:220px;transition:height 0.3s ease;background:#e8e8e8"></div>
           <div id="map-hint" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);font-size:12px;color:#fff;text-align:center;padding:6px 10px;pointer-events:none">Тапните по карте чтобы выбрать адрес</div>
         </div>
         <div id="map-actions" style="display:none;gap:8px;margin-bottom:12px">
@@ -2133,6 +2132,21 @@ function toggleAddressFields() {
   }
 }
 
+let _ymaps3Loading = null;
+
+function loadYmaps3() {
+  if (window.ymaps3) return Promise.resolve();
+  if (_ymaps3Loading) return _ymaps3Loading;
+  _ymaps3Loading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://api-maps.yandex.ru/v3/?apikey=cf21b4b1-6839-40d0-bc67-9a794d3877ef&lang=ru_RU';
+    s.onload = () => ymaps3.ready.then(resolve).catch(reject);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return _ymaps3Loading;
+}
+
 async function initAddrMap() {
   const mapEl = document.getElementById('address-map');
   if (_addrMap) {
@@ -2144,10 +2158,12 @@ async function initAddrMap() {
     return;
   }
 
+  document.getElementById('map-hint').textContent = 'Загружаем карту...';
   try {
-    await ymaps3.ready;
+    await loadYmaps3();
   } catch(e) {
-    console.error('ymaps3 not ready', e);
+    document.getElementById('map-hint').textContent = 'Ошибка загрузки карты';
+    console.error('ymaps3 load error', e);
     return;
   }
 
