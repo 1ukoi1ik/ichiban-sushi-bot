@@ -1186,8 +1186,7 @@ html, body {
   letter-spacing: 0.3px;
 }
 </style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://api-maps.yandex.ru/v3/?apikey=cf21b4b1-6839-40d0-bc67-9a794d3877ef&lang=ru_RU" type="text/javascript"></script>
 </head>
 <body>
 
@@ -2114,6 +2113,8 @@ setInterval(async () => {
 
 let _addrMap = null;
 let _addrMarker = null;
+let _mapExpanded = false;
+const _MAP_CENTER = [39.3259, 48.5604]; // [lon, lat] — формат Яндекс API 3.0
 
 function toggleAddressFields() {
   const fields = document.getElementById('address-fields');
@@ -2122,7 +2123,6 @@ function toggleAddressFields() {
   if (!visible) {
     fields.style.display = 'block';
     btn.textContent = '📍 Скрыть адрес';
-    // два rAF гарантируют что DOM отрисован перед инитом карты
     requestAnimationFrame(() => requestAnimationFrame(() => initAddrMap()));
   } else {
     fields.style.display = 'none';
@@ -2133,34 +2133,53 @@ function toggleAddressFields() {
   }
 }
 
-let _mapExpanded = false;
-
-function initAddrMap() {
-  const CENTER = [48.5604, 39.3259];
+async function initAddrMap() {
   const mapEl = document.getElementById('address-map');
   if (_addrMap) {
     mapEl.style.height = '220px';
-    // задержка нужна: контейнер только что стал visible, размер ещё не стабилен
+    _mapExpanded = false;
+    document.getElementById('map-actions').style.display = 'none';
     setTimeout(() => {
-      _addrMap.invalidateSize();
-      _addrMap.setView(CENTER, 15, { animate: false });
-      _addrMarker.setLatLng(CENTER);
+      _addrMap.setCenter(_MAP_CENTER);
+      _addrMap.setZoom(15);
+      _addrMarker.geometry.setCoordinates(_MAP_CENTER);
     }, 50);
     return;
   }
-  _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(CENTER, 15);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, minZoom: 10 }).addTo(_addrMap);
-  _addrMarker = L.marker(CENTER, { draggable: true }).addTo(_addrMap);
-  _addrMap.on('click', (e) => {
-    if (!_mapExpanded) {
-      expandMap();
-      // ждём invalidateSize в expandMap (320ms), берём latlng напрямую — он не меняется от resize
-      setTimeout(() => moveMarkerAndGeocode(e.latlng), 370);
-    } else {
-      moveMarkerAndGeocode(e.latlng);
-    }
+  await ymaps3.ready;
+  const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer, YMapControls } = ymaps3;
+  const { YMapZoomControl } = await ymaps3.import('@yandex/ymaps3-controls@0.0.1');
+  const { YMapDefaultMarker } = await ymaps3.import('@yandex/ymaps3-markers@0.0.1');
+
+  _addrMap = new YMap(mapEl, {
+    location: { center: _MAP_CENTER, zoom: 15 },
+    behaviors: ['drag', 'pinchZoom', 'dblClick']
   });
-  _addrMarker.on('dragend', () => moveMarkerAndGeocode(_addrMarker.getLatLng()));
+  _addrMap.addChild(new YMapDefaultSchemeLayer());
+  _addrMap.addChild(new YMapDefaultFeaturesLayer());
+  const controls = new YMapControls({ position: 'right' });
+  controls.addChild(new YMapZoomControl());
+  _addrMap.addChild(controls);
+
+  _addrMarker = new YMapDefaultMarker({
+    coordinates: _MAP_CENTER,
+    draggable: true,
+    onDragEnd: (coords) => moveMarkerAndGeocode(coords)
+  });
+  _addrMap.addChild(_addrMarker);
+
+  _addrMap.addChild(new ymaps3.YMapListener({
+    layer: 'any',
+    onClick: (obj, event) => {
+      const coords = event.coordinates;
+      if (!_mapExpanded) {
+        expandMap();
+        setTimeout(() => moveMarkerAndGeocode(coords), 370);
+      } else {
+        moveMarkerAndGeocode(coords);
+      }
+    }
+  }));
 }
 
 function expandMap() {
@@ -2169,7 +2188,6 @@ function expandMap() {
   document.getElementById('address-map').style.height = '420px';
   document.getElementById('map-actions').style.display = 'flex';
   document.getElementById('map-hint').textContent = 'Тапните по карте чтобы поставить метку';
-  setTimeout(() => _addrMap.invalidateSize(), 320);
 }
 
 function collapseMap() {
@@ -2177,7 +2195,6 @@ function collapseMap() {
   document.getElementById('address-map').style.height = '220px';
   document.getElementById('map-actions').style.display = 'none';
   document.getElementById('map-hint').textContent = 'Тапните по карте чтобы развернуть';
-  setTimeout(() => _addrMap.invalidateSize(), 320);
 }
 
 function confirmMapAddress() {
@@ -2187,19 +2204,19 @@ function confirmMapAddress() {
   if (street) document.getElementById('map-hint').textContent = '✓ ' + [street, house].filter(Boolean).join(', д.');
 }
 
-async function moveMarkerAndGeocode(latlng) {
-  _addrMarker.setLatLng(latlng);
-  _addrMap.panTo(latlng);
+async function moveMarkerAndGeocode(coords) {
+  _addrMarker.update({ coordinates: coords });
+  _addrMap.setLocation({ center: coords, zoom: _addrMap.zoom, duration: 300 });
   document.getElementById('map-hint').textContent = 'Определяем адрес...';
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json&accept-language=ru&zoom=18&addressdetails=1`, { headers: { 'User-Agent': 'IchibanSushiBot/1.0' } });
+    const [lon, lat] = coords;
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ru&zoom=18&addressdetails=1`, { headers: { 'User-Agent': 'IchibanSushiBot/1.0' } });
     const data = await res.json();
     const a = data.address || {};
     const street = a.road || a.pedestrian || a.footway || a.path || a.residential || a.neighbourhood || '';
     const house = a.house_number || '';
     if (street) document.getElementById('input-street').value = street;
-    if (house) document.getElementById('input-house').value = house;
-    else document.getElementById('input-house').value = '';
+    document.getElementById('input-house').value = house || '';
     const label = street ? '✓ ' + [street, house].filter(Boolean).join(', д.') : '⚠️ Улица не определена — введите вручную';
     document.getElementById('map-hint').textContent = label;
   } catch(e) {
