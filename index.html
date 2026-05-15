@@ -1387,7 +1387,10 @@ html, body {
           <input type="text" class="form-input" id="input-house" placeholder="Дом *" style="flex:1">
           <input type="text" class="form-input" id="input-building" placeholder="Корпус" style="flex:1">
         </div>
-        <input type="text" class="form-input" id="input-flat" placeholder="Квартира">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" class="form-input" id="input-floor" placeholder="Этаж" style="flex:1">
+          <input type="text" class="form-input" id="input-flat" placeholder="Квартира" style="flex:1">
+        </div>
       </div>
       <input type="hidden" id="input-address">
     </div>
@@ -2064,7 +2067,7 @@ function goToCheckout() {
     document.getElementById('input-name').value = tg.initDataUnsafe.user.first_name;
   }
   // сбросить поля адреса
-  ['input-street','input-house','input-building','input-flat'].forEach(id => {
+  ['input-street','input-house','input-building','input-floor','input-flat'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
@@ -2092,6 +2095,7 @@ async function placeOrder() {
   const street = document.getElementById('input-street').value.trim();
   const house = document.getElementById('input-house').value.trim();
   const building = document.getElementById('input-building').value.trim();
+  const floor = document.getElementById('input-floor').value.trim();
   const flat = document.getElementById('input-flat').value.trim();
   const phone = document.getElementById('input-phone')?.value?.trim() || '';
   const comment = document.getElementById('input-comment')?.value?.trim() || '';
@@ -2099,7 +2103,7 @@ async function placeOrder() {
   if (!name) { showToast('Введите имя'); return; }
   if (!street) { showToast('Введите улицу'); return; }
   if (!house) { showToast('Введите номер дома'); return; }
-  const addr = [street, 'д.' + house, building ? 'корп.' + building : '', flat ? 'кв.' + flat : ''].filter(Boolean).join(', ');
+  const addr = [street, 'д.' + house, building ? 'корп.' + building : '', floor ? 'эт.' + floor : '', flat ? 'кв.' + flat : ''].filter(Boolean).join(', ');
 
   const items = Object.entries(cart).map(([id, entry]) => {
     const item = MENU.find(m => m.id === +id);
