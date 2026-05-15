@@ -1836,13 +1836,13 @@ function renderCardMediaGallery(item) {
   var dots = item.imgs.map(function(_, i) {
     return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
   }).join('');
-  return '<div class="card-gallery-wrap">' +
-    '<div class="card-gallery" id="gallery-' + item.id + '"' +
-    ' onscroll="updateDots(' + item.id + ',this)"' +
+  return '<div class="card-gallery-wrap"' +
     ' ontouchstart="onGalleryTouchStart(event)"' +
     ' ontouchmove="onGalleryTouchMove(event)"' +
     ' ontouchend="onGalleryTouchEnd(' + item.id + ',event)"' +
     ' onclick="onGalleryClick(' + item.id + ',event)">' +
+    '<div class="card-gallery" id="gallery-' + item.id + '"' +
+    ' onscroll="updateDots(' + item.id + ',this)">' +
     slides + '</div>' +
     '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
     '<div class="card-cal-badge">' + item.cal + '</div>' +
@@ -1967,23 +1967,31 @@ function updateDots(id, gallery) {
 
 var _galleryTouchStartX = 0;
 var _galleryTouchStartY = 0;
+var _galleryScrollStart = 0;
 var _galleryDidSwipe = false;
+var _galleryEl = null;
 
 function onGalleryTouchStart(e) {
   _galleryTouchStartX = e.touches[0].clientX;
   _galleryTouchStartY = e.touches[0].clientY;
   _galleryDidSwipe = false;
+  _galleryEl = e.currentTarget.querySelector('.card-gallery');
+  _galleryScrollStart = _galleryEl ? _galleryEl.scrollLeft : 0;
 }
 function onGalleryTouchMove(e) {
-  var dx = Math.abs(e.touches[0].clientX - _galleryTouchStartX);
+  var dx = e.touches[0].clientX - _galleryTouchStartX;
   var dy = Math.abs(e.touches[0].clientY - _galleryTouchStartY);
-  if (dx > 8 && dx > dy) {
+  if (Math.abs(dx) > 8 && Math.abs(dx) > dy) {
     _galleryDidSwipe = true;
     e.preventDefault();
+    if (_galleryEl) _galleryEl.scrollLeft = _galleryScrollStart - dx;
   }
 }
 function onGalleryTouchEnd(id, e) {
-  // scroll-snap handles snapping automatically — no manual scrollTo needed
+  if (!_galleryDidSwipe || !_galleryEl) return;
+  var w = _galleryEl.offsetWidth;
+  var cur = Math.round(_galleryEl.scrollLeft / w);
+  _galleryEl.scrollTo({ left: cur * w, behavior: 'smooth' });
 }
 function onGalleryTap(id) {
   if (_galleryDidSwipe) return;
