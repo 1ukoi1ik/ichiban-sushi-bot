@@ -45,10 +45,6 @@ def init_db():
                     created_at TIMESTAMP DEFAULT NOW()
                 )
             """)
-            # добавить колонку если её нет (для старых БД)
-            cur.execute("""
-                ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id BIGINT
-            """)
         conn.commit()
 
 
@@ -62,7 +58,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://1ukoi1ik.github.io"],
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )

@@ -1946,18 +1946,19 @@ async function placeOrder() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum, user_id: tg?.initDataUnsafe?.user?.id || null })
     });
-    if (!res.ok) showToast('⚠️ Ошибка сервера: ' + res.status);
-    else showToast('✅ Заказ отправлен на кухню');
+    if (!res.ok) {
+      showToast('⚠️ Ошибка сервера: ' + res.status);
+      return;
+    }
+    showToast('✅ Заказ отправлен на кухню');
+    localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 1 }));
+    document.getElementById('order-number').textContent = orderNum;
+    showScreen('screen-success');
+    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
   } catch(e) {
     showToast('⚠️ Ошибка: ' + e.message);
     console.error('Order fetch error:', e);
   }
-
-  localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 1 }));
-
-  document.getElementById('order-number').textContent = orderNum;
-  showScreen('screen-success');
-  if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 }
 
 function goBack(id) { showScreen(id, true); }
@@ -2072,7 +2073,9 @@ setInterval(async () => {
       else if (data.step === 3) showToast('🛵 Курьер уже едет!');
       else if (data.step === 2) showToast('👨‍🍳 Ресторан начал готовить');
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error('Poll error:', e);
+  }
 }, 10000);
 
 // Автодополнение адреса через Nominatim
