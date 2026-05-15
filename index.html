@@ -1988,6 +1988,15 @@ function onGalleryTouchMove(e) {
   }
 }
 function onGalleryTouchEnd(id, e) {
+  var dx = Math.abs(e.changedTouches[0].clientX - _galleryTouchStartX);
+  var dy = e.changedTouches[0].clientY - _galleryTouchStartY;
+  if (!_galleryDidSwipe && dy > 40 && dy > dx) {
+    var card = document.getElementById('card-' + id);
+    if (card && card.classList.contains('expanded')) {
+      card.classList.remove('expanded');
+      return;
+    }
+  }
   if (!_galleryDidSwipe || !_galleryEl) return;
   var w = _galleryEl.offsetWidth;
   var cur = Math.round(_galleryEl.scrollLeft / w);
