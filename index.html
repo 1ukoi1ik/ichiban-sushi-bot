@@ -844,28 +844,6 @@ html, body {
 .address-suggestion-item:last-child { border-bottom: none; }
 .address-suggestion-item:active { background: #2a2a2a; }
 
-.contact-btn {
-  width: 100%;
-  padding: 13px 15px;
-  border-radius: 14px;
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: border-color 0.2s, background 0.2s;
-}
-.contact-btn.done {
-  border-color: rgba(52,199,89,0.5);
-  color: var(--green);
-  background: rgba(52,199,89,0.06);
-}
 
 .pay-options { display: flex; gap: 10px; }
 .pay-opt {
@@ -1288,10 +1266,7 @@ html, body {
     </div>
     <div class="form-group">
       <label class="form-label">Номер телефона</label>
-      <button class="contact-btn" id="contact-btn" onclick="requestPhone()">
-        📱 Поделиться номером через Telegram
-      </button>
-      <input type="tel" class="form-input" id="input-phone" placeholder="+7 (000) 000-00-00" style="margin-top:8px">
+      <input type="tel" class="form-input" id="input-phone" placeholder="+7 (000) 000-00-00">
     </div>
     <div class="form-group">
       <label class="form-label">Адрес доставки</label>
@@ -1885,31 +1860,6 @@ function goToCheckout() {
   showScreen('screen-checkout');
 }
 
-function requestPhone() {
-  if (!tg?.requestContact) {
-    showToast('Функция доступна в Telegram');
-    return;
-  }
-  tg.requestContact((ok) => {
-    let phone = '';
-    if (ok) {
-      phone = tg.initDataUnsafe?.contact?.phone_number || '';
-    }
-    if (!phone && tg.initDataUnsafe?.user?.id) {
-      // попробуем из responseUnsafeData если есть
-      phone = tg.responseUnsafeData?.contact?.phone_number || '';
-    }
-    if (phone) {
-      if (!phone.startsWith('+')) phone = '+' + phone;
-      document.getElementById('input-phone').value = phone;
-      const btn = document.getElementById('contact-btn');
-      btn.textContent = '✓ Номер получен';
-      btn.classList.add('done');
-    } else if (ok) {
-      showToast('Не удалось получить номер — введите вручную');
-    }
-  });
-}
 
 let selectedPay = 'cash';
 function selectPay(type) {
