@@ -821,6 +821,32 @@ html, body {
 }
 .form-input::placeholder { color: var(--sub2); }
 
+.address-toggle-btn {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.address-toggle-btn.filled {
+  border-color: rgba(52,199,89,0.5);
+  color: var(--green);
+  background: rgba(52,199,89,0.06);
+}
+.address-fields-expanded {
+  margin-top: 10px;
+}
+
 .address-suggestions {
   display: none;
   position: absolute;
@@ -1268,12 +1294,23 @@ html, body {
       <label class="form-label">Номер телефона</label>
       <input type="tel" class="form-input" id="input-phone" placeholder="+7 (000) 000-00-00">
     </div>
-    <div class="form-group">
+    <div class="form-group" id="address-group">
       <label class="form-label">Адрес доставки</label>
-      <div style="position:relative">
-        <input type="text" class="form-input" id="input-address" placeholder="Улица, дом, квартира" autocomplete="off">
-        <div id="address-suggestions" class="address-suggestions"></div>
+      <button class="address-toggle-btn" id="address-toggle-btn" onclick="toggleAddressFields()">
+        📍 Указать адрес
+      </button>
+      <div id="address-fields" class="address-fields-expanded" style="display:none">
+        <div style="position:relative">
+          <input type="text" class="form-input" id="input-street" placeholder="Улица *" autocomplete="off" style="margin-bottom:8px">
+          <div id="address-suggestions" class="address-suggestions"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" class="form-input" id="input-house" placeholder="Дом *" style="flex:1">
+          <input type="text" class="form-input" id="input-building" placeholder="Корпус" style="flex:1">
+        </div>
+        <input type="text" class="form-input" id="input-flat" placeholder="Квартира">
       </div>
+      <input type="hidden" id="input-address">
     </div>
     <div class="form-group">
       <label class="form-label">Комментарий</label>
@@ -1876,12 +1913,17 @@ const API_URL = 'https://ichiban-sushi-bot-production.up.railway.app';
 
 async function placeOrder() {
   const name = document.getElementById('input-name').value.trim();
-  const addr = document.getElementById('input-address').value.trim();
+  const street = document.getElementById('input-street').value.trim();
+  const house = document.getElementById('input-house').value.trim();
+  const building = document.getElementById('input-building').value.trim();
+  const flat = document.getElementById('input-flat').value.trim();
   const phone = document.getElementById('input-phone')?.value?.trim() || '';
   const comment = document.getElementById('input-comment')?.value?.trim() || '';
   const payment = document.querySelector('.pay-btn.active')?.dataset?.pay || 'Наличными курьеру';
   if (!name) { showToast('Введите имя'); return; }
-  if (!addr) { showToast('Введите адрес доставки'); return; }
+  if (!street) { showToast('Введите улицу'); return; }
+  if (!house) { showToast('Введите номер дома'); return; }
+  const addr = [street, 'д.' + house, building ? 'корп.' + building : '', flat ? 'кв.' + flat : ''].filter(Boolean).join(', ');
 
   const items = Object.entries(cart).map(([id, entry]) => {
     const item = MENU.find(m => m.id === +id);
@@ -2028,14 +2070,33 @@ setInterval(async () => {
   }
 }, 10000);
 
+function toggleAddressFields() {
+  const fields = document.getElementById('address-fields');
+  const btn = document.getElementById('address-toggle-btn');
+  const visible = fields.style.display !== 'none';
+  fields.style.display = visible ? 'none' : 'block';
+  if (!visible) {
+    btn.textContent = '📍 Скрыть адрес';
+    setTimeout(() => document.getElementById('input-street').focus(), 100);
+  } else {
+    const street = document.getElementById('input-street').value.trim();
+    const house = document.getElementById('input-house').value.trim();
+    btn.textContent = street && house ? '✓ ' + street + ', д.' + house : '📍 Указать адрес';
+    btn.classList.toggle('filled', !!(street && house));
+  }
+}
+
 // Автодополнение адреса через Nominatim
 let _addrDebounce = null;
 
-document.getElementById('input-address').addEventListener('input', function() {
-  clearTimeout(_addrDebounce);
-  const val = this.value.trim();
-  if (val.length < 3) { hideSuggestions(); return; }
-  _addrDebounce = setTimeout(() => fetchAddressSuggestions(val), 500);
+document.addEventListener('DOMContentLoaded', () => {
+  const streetInput = document.getElementById('input-street');
+  if (streetInput) streetInput.addEventListener('input', function() {
+    clearTimeout(_addrDebounce);
+    const val = this.value.trim();
+    if (val.length < 3) { hideSuggestions(); return; }
+    _addrDebounce = setTimeout(() => fetchAddressSuggestions(val), 500);
+  });
 });
 
 async function fetchAddressSuggestions(query) {
@@ -2058,8 +2119,9 @@ function showSuggestions(items) {
     div.className = 'address-suggestion-item';
     div.textContent = short;
     div.addEventListener('click', () => {
-      document.getElementById('input-address').value = short;
+      document.getElementById('input-street').value = short;
       hideSuggestions();
+      document.getElementById('input-house').focus();
     });
     box.appendChild(div);
   });
@@ -2071,7 +2133,7 @@ function hideSuggestions() {
 }
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('#input-address') && !e.target.closest('#address-suggestions')) {
+  if (!e.target.closest('#input-street') && !e.target.closest('#address-suggestions')) {
     hideSuggestions();
   }
 });
