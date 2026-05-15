@@ -1166,6 +1166,8 @@ html, body {
   letter-spacing: 0.3px;
 }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -1300,6 +1302,8 @@ html, body {
         📍 Указать адрес
       </button>
       <div id="address-fields" class="address-fields-expanded" style="display:none">
+        <div id="address-map" style="height:200px;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border)"></div>
+        <div id="map-hint" style="font-size:12px;color:var(--sub2);text-align:center;margin-bottom:10px">Тапните по карте чтобы выбрать адрес</div>
         <div style="position:relative">
           <input type="text" class="form-input" id="input-street" placeholder="Улица *" autocomplete="off" style="margin-bottom:8px">
           <div id="address-suggestions" class="address-suggestions"></div>
@@ -2070,6 +2074,9 @@ setInterval(async () => {
   }
 }, 10000);
 
+let _addrMap = null;
+let _addrMarker = null;
+
 function toggleAddressFields() {
   const fields = document.getElementById('address-fields');
   const btn = document.getElementById('address-toggle-btn');
@@ -2077,12 +2084,41 @@ function toggleAddressFields() {
   fields.style.display = visible ? 'none' : 'block';
   if (!visible) {
     btn.textContent = '📍 Скрыть адрес';
-    setTimeout(() => document.getElementById('input-street').focus(), 100);
+    setTimeout(() => {
+      initAddrMap();
+      document.getElementById('input-street').focus();
+    }, 100);
   } else {
     const street = document.getElementById('input-street').value.trim();
     const house = document.getElementById('input-house').value.trim();
     btn.textContent = street && house ? '✓ ' + street + ', д.' + house : '📍 Указать адрес';
     btn.classList.toggle('filled', !!(street && house));
+  }
+}
+
+function initAddrMap() {
+  if (_addrMap) { _addrMap.invalidateSize(); return; }
+  _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView([48.5703, 39.3412], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(_addrMap);
+  _addrMarker = L.marker([48.5703, 39.3412], { draggable: true }).addTo(_addrMap);
+  _addrMap.on('click', (e) => moveMarkerAndGeocode(e.latlng));
+  _addrMarker.on('dragend', () => moveMarkerAndGeocode(_addrMarker.getLatLng()));
+}
+
+async function moveMarkerAndGeocode(latlng) {
+  _addrMarker.setLatLng(latlng);
+  document.getElementById('map-hint').textContent = 'Определяем адрес...';
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json&accept-language=ru`, { headers: { 'User-Agent': 'IchibanSushiBot/1.0' } });
+    const data = await res.json();
+    const a = data.address || {};
+    const street = a.road || a.pedestrian || a.footway || '';
+    const house = a.house_number || '';
+    if (street) document.getElementById('input-street').value = street;
+    if (house) document.getElementById('input-house').value = house;
+    document.getElementById('map-hint').textContent = street ? '✓ ' + [street, house].filter(Boolean).join(', ') : 'Тапните по карте чтобы выбрать адрес';
+  } catch(e) {
+    document.getElementById('map-hint').textContent = 'Не удалось определить адрес';
   }
 }
 
