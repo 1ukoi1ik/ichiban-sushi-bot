@@ -431,13 +431,17 @@ html, body {
 
 /* Галерея фото */
 .card-gallery {
+  position: absolute;
+  inset: 0;
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   height: 190px;
   gap: 0;
+  touch-action: pan-x;
 }
 .card-gallery::-webkit-scrollbar { display: none; }
 .card-gallery-slide {
@@ -1838,7 +1842,7 @@ function renderMenu() {
       html += `
         <div class="food-card" id="card-${item.id}" style="animation-delay:${idx*60}ms"
              onclick="toggleCard(${item.id},event)">
-          <div class="card-image-wrap" id="iwrap-${item.id}" style="position:relative;overflow:hidden">
+          <div class="card-image-wrap" id="iwrap-${item.id}">
             ${renderCardMedia(item)}
             <div class="card-grad"></div>
             <div class="card-cal-badge">${item.cal}</div>
