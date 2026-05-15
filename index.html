@@ -2136,7 +2136,7 @@ let _mapExpanded = false;
 
 function initAddrMap() {
   if (_addrMap) { _addrMap.invalidateSize(); return; }
-  const _center = [48.5682, 39.3076]; // ул. Советская 69, Луганск
+  const _center = [48.5604, 39.3259]; // Корона, ул. Газеты Луганской Правды, Луганск
   _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(_center, 15);
   L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=ru_RU', { maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
   _addrMarker = L.marker(_center, { draggable: true }).addTo(_addrMap);
