@@ -2149,7 +2149,7 @@ function initAddrMap() {
     return;
   }
   _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(CENTER, 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, minZoom: 10 }).addTo(_addrMap);
+  L.tileLayer('https://tile{s}.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1.5', { subdomains: '123', maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
   _addrMarker = L.marker(CENTER, { draggable: true }).addTo(_addrMap);
   _addrMap.on('click', (e) => {
     if (!_mapExpanded) {
