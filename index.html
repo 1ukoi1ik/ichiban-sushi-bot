@@ -429,6 +429,53 @@ html, body {
   z-index: 4;
 }
 
+/* Галерея фото */
+.card-gallery {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  height: 190px;
+  gap: 0;
+}
+.card-gallery::-webkit-scrollbar { display: none; }
+.card-gallery-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+.card-gallery-slide img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.card-gallery-slide img.loaded { opacity: 1; }
+.card-gallery-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 5;
+}
+.card-gallery-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  transition: background 0.2s, transform 0.2s;
+}
+.card-gallery-dot.active {
+  background: #fff;
+  transform: scale(1.3);
+}
+
 /* CARD BODY */
 .card-body { padding: 12px 14px 14px; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
@@ -1443,12 +1490,12 @@ const BRANDS = {
       {key:'desserts',label:'🍡 Десерты'},{key:'drinks',label:'🥤 Напитки'}
     ],
     menu: [
-      { id:1, cat:'rolls', name:'Филадельфия', price:490, weight:'240г', desc:'Нежный норвежский лосось холодного копчения, бархатистый сыр Philadelphia и хрустящий огурец.', tags:['hit'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85' },
-      { id:2, cat:'rolls', name:'Калифорния', price:380, weight:'220г', desc:'Сурими из натурального краба, авокадо, огурец, тобико. Классика японской кухни.', tags:['hit'], cal:'280 ккал', img:'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&q=85' },
-      { id:3, cat:'rolls', name:'Дракон', price:570, weight:'260г', desc:'Хрустящая креветка темпура внутри, слайсы авокадо снаружи. Полит острым майонезом.', tags:['hot','hit'], cal:'410 ккал', img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85' },
-      { id:4, cat:'rolls', name:'Радуга', price:640, weight:'280г', desc:'Семь видов рыбы: лосось, тунец, желтохвост, лакедра, угорь, морской окунь и икура.', tags:['new'], cal:'360 ккал', img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85' },
-      { id:5, cat:'rolls', name:'Эби темпура', price:450, weight:'250г', desc:'Тигровая креветка в хрустящем кляре темпура, огурец, икра тобико, соус спайси.', tags:['hot'], cal:'390 ккал', img:'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=85' },
-      { id:6, cat:'rolls', name:'Тунец Спайси', price:520, weight:'240г', desc:'Нарезанный тунец с соусом спайси, перец чили, кунжут. Для любителей острого.', tags:['hot','new'], cal:'300 ккал', img:'https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?w=600&q=85' },
+      { id:1, cat:'rolls', name:'Филадельфия', price:490, weight:'240г', desc:'Нежный норвежский лосось холодного копчения, бархатистый сыр Philadelphia и хрустящий огурец.', tags:['hit'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85', imgs:['https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85','https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=85','https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&q=85','https://images.unsplash.com/photo-1576577445504-6af96477db52?w=600&q=85'] },
+      { id:2, cat:'rolls', name:'Калифорния', price:380, weight:'220г', desc:'Сурими из натурального краба, авокадо, огурец, тобико. Классика японской кухни.', tags:['hit'], cal:'280 ккал', img:'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&q=85', imgs:['https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&q=85','https://images.unsplash.com/photo-1582716401301-b2407dc7563d?w=600&q=85','https://images.unsplash.com/photo-1560717845-968823efbee1?w=600&q=85','https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=85'] },
+      { id:3, cat:'rolls', name:'Дракон', price:570, weight:'260г', desc:'Хрустящая креветка темпура внутри, слайсы авокадо снаружи. Полит острым майонезом.', tags:['hot','hit'], cal:'410 ккал', img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85', imgs:['https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85','https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=85','https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=85','https://images.unsplash.com/photo-1505253304499-671c55fb57fe?w=600&q=85'] },
+      { id:4, cat:'rolls', name:'Радуга', price:640, weight:'280г', desc:'Семь видов рыбы: лосось, тунец, желтохвост, лакедра, угорь, морской окунь и икура.', tags:['new'], cal:'360 ккал', img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85', imgs:['https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85','https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=600&q=85','https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&q=85','https://images.unsplash.com/photo-1576577445504-6af96477db52?w=600&q=85'] },
+      { id:5, cat:'rolls', name:'Эби темпура', price:450, weight:'250г', desc:'Тигровая креветка в хрустящем кляре темпура, огурец, икра тобико, соус спайси.', tags:['hot'], cal:'390 ккал', img:'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=85', imgs:['https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=85','https://images.unsplash.com/photo-1582716401301-b2407dc7563d?w=600&q=85','https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=85','https://images.unsplash.com/photo-1505253304499-671c55fb57fe?w=600&q=85'] },
+      { id:6, cat:'rolls', name:'Тунец Спайси', price:520, weight:'240г', desc:'Нарезанный тунец с соусом спайси, перец чили, кунжут. Для любителей острого.', tags:['hot','new'], cal:'300 ккал', img:'https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?w=600&q=85', imgs:['https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?w=600&q=85','https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=85','https://images.unsplash.com/photo-1560717845-968823efbee1?w=600&q=85','https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=85'] },
       { id:7, cat:'hot', name:'Жареные с лососем', price:520, weight:'280г', desc:'Классические роллы обжаренные в темпурном кляре до золотистой корочки.', tags:['hit','hot'], cal:'450 ккал', img:'https://images.unsplash.com/photo-1598514983318-2f64f8f4796c?w=600&q=85' },
       { id:8, cat:'hot', name:'Запечённый с сыром', price:490, weight:'260г', desc:'Роллы с крабом запечены со сливочным сыром и икрой масаго.', tags:['hit'], cal:'480 ккал', img:'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=600&q=85' },
       { id:9, cat:'sets', name:'Сет «Для двоих»', price:990, weight:'480г', desc:'32 ролла: Филадельфия ×8, Калифорния ×8, Дракон ×8, Темпура ×8.', tags:['hit'], cal:'1100 ккал', img:'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&q=85' },
@@ -1774,11 +1821,21 @@ function renderMenu() {
       html += `
         <div class="food-card" id="card-${item.id}" style="animation-delay:${idx*60}ms"
              onclick="toggleCard(${item.id},event)">
-          <div class="card-image-wrap" id="iwrap-${item.id}">
+          <div class="card-image-wrap" id="iwrap-${item.id}" style="position:relative;overflow:hidden">
+            ${item.imgs ? `
+            <div class="card-gallery" id="gallery-${item.id}" onscroll="updateDots(${item.id},this)">
+              ${item.imgs.map((src,i) => `
+              <div class="card-gallery-slide">
+                <img data-src="${src}" alt="${item.name}" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
+              </div>`).join('')}
+            </div>
+            <div class="card-gallery-dots" id="dots-${item.id}">
+              ${item.imgs.map((_,i) => `<div class="card-gallery-dot${i===0?' active':''}"></div>`).join('')}
+            </div>` : `
             <img class="card-image" id="img-${item.id}" alt="${item.name}"
               onload="this.classList.add('loaded');document.getElementById('iwrap-${item.id}').classList.add('img-loaded')"
               onerror="this.classList.add('loaded');document.getElementById('iwrap-${item.id}').classList.add('img-loaded')">
-            <div class="shimmer-layer"></div>
+            <div class="shimmer-layer"></div>`}
             <div class="card-grad"></div>
             <div class="card-cal-badge">${item.cal}</div>
           </div>
@@ -1805,23 +1862,46 @@ function renderMenu() {
   });
   document.getElementById('menu-content').innerHTML = html;
 
-  // Lazy load images
+  // Lazy load — одиночные фото
   MENU.forEach(item => {
     const imgEl = document.getElementById('img-'+item.id);
     if (imgEl) {
       if ('IntersectionObserver' in window) {
         const obs = new IntersectionObserver((entries, o) => {
-          entries.forEach(e => {
-            if (e.isIntersecting) { imgEl.src = item.img; o.disconnect(); }
-          });
+          entries.forEach(e => { if (e.isIntersecting) { imgEl.src = item.img; o.disconnect(); } });
         }, { rootMargin:'200px' });
         obs.observe(imgEl);
-      } else {
-        imgEl.src = item.img;
+      } else { imgEl.src = item.img; }
+    }
+    // Lazy load галереи
+    if (item.imgs) {
+      const gallery = document.getElementById('gallery-'+item.id);
+      if (gallery) {
+        const slides = gallery.querySelectorAll('img[data-src]');
+        if ('IntersectionObserver' in window) {
+          const obs = new IntersectionObserver((entries, o) => {
+            entries.forEach(e => {
+              if (e.isIntersecting) {
+                slides.forEach(img => { img.src = img.dataset.src; });
+                o.disconnect();
+              }
+            });
+          }, { rootMargin:'200px' });
+          obs.observe(gallery);
+        } else {
+          slides.forEach(img => { img.src = img.dataset.src; });
+        }
       }
     }
   });
 
+}
+
+function updateDots(id, gallery) {
+  const dots = document.querySelectorAll(`#dots-${id} .card-gallery-dot`);
+  if (!dots.length) return;
+  const idx = Math.round(gallery.scrollLeft / gallery.offsetWidth);
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
 }
 
 function toggleCard(id, e) {
