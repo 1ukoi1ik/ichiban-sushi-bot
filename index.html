@@ -1791,6 +1791,23 @@ function renderCats(brandKey) {
 }
 const TAG_MAP = { hot:'Острое', new:'Новинка', hit:'Хит' };
 
+function renderCardMedia(item) {
+  if (item.imgs && item.imgs.length > 1) {
+    var slides = item.imgs.map(function(src) {
+      return '<div class="card-gallery-slide"><img data-src="' + src + '" alt="' + item.name + '" onload="this.classList.add(\'loaded\')" onerror="this.classList.add(\'loaded\')"></div>';
+    }).join('');
+    var dots = item.imgs.map(function(_, i) {
+      return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
+    }).join('');
+    return '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)">' + slides + '</div>' +
+           '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>';
+  }
+  return '<img class="card-image" id="img-' + item.id + '" alt="' + item.name + '" ' +
+    'onload="this.classList.add(\'loaded\');document.getElementById(\'iwrap-' + item.id + '\').classList.add(\'img-loaded\')" ' +
+    'onerror="this.classList.add(\'loaded\');document.getElementById(\'iwrap-' + item.id + '\').classList.add(\'img-loaded\')">' +
+    '<div class="shimmer-layer"></div>';
+}
+
 function renderMenu() {
   const isTop = currentCat === 'top';
   const items = isTop
@@ -1822,20 +1839,7 @@ function renderMenu() {
         <div class="food-card" id="card-${item.id}" style="animation-delay:${idx*60}ms"
              onclick="toggleCard(${item.id},event)">
           <div class="card-image-wrap" id="iwrap-${item.id}" style="position:relative;overflow:hidden">
-            ${item.imgs ? `
-            <div class="card-gallery" id="gallery-${item.id}" onscroll="updateDots(${item.id},this)">
-              ${item.imgs.map((src,i) => `
-              <div class="card-gallery-slide">
-                <img data-src="${src}" alt="${item.name}" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
-              </div>`).join('')}
-            </div>
-            <div class="card-gallery-dots" id="dots-${item.id}">
-              ${item.imgs.map((_,i) => `<div class="card-gallery-dot${i===0?' active':''}"></div>`).join('')}
-            </div>` : `
-            <img class="card-image" id="img-${item.id}" alt="${item.name}"
-              onload="this.classList.add('loaded');document.getElementById('iwrap-${item.id}').classList.add('img-loaded')"
-              onerror="this.classList.add('loaded');document.getElementById('iwrap-${item.id}').classList.add('img-loaded')">
-            <div class="shimmer-layer"></div>`}
+            ${renderCardMedia(item)}
             <div class="card-grad"></div>
             <div class="card-cal-badge">${item.cal}</div>
           </div>
