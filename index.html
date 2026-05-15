@@ -1965,6 +1965,7 @@ function showScreen(id, back=false) {
     if (s.id!==id) s.classList.add(back ? 'hidden' : 'slide-left');
   });
   if (!back) document.querySelector('#'+id).scrollTop = 0;
+  sessionStorage.setItem('ichi_screen', id);
 }
 
 function resetAndGoMenu() {
@@ -2051,7 +2052,8 @@ function showToast(msg) {
 }
 
 renderMenu();
-showScreen('screen-picker');
+const _savedScreen = sessionStorage.getItem('ichi_screen');
+showScreen(_savedScreen || 'screen-picker');
 updateOpenStatus();
 showActiveOrderBanner();
 
