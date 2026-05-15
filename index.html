@@ -1924,6 +1924,14 @@ function goToCheckout() {
   if (tg?.initDataUnsafe?.user?.first_name) {
     document.getElementById('input-name').value = tg.initDataUnsafe.user.first_name;
   }
+  // сбросить поля адреса
+  ['input-street','input-house','input-building','input-flat'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
+  document.getElementById('address-toggle-btn').classList.remove('filled');
+  document.getElementById('address-fields').style.display = 'none';
+  document.getElementById('map-hint').textContent = 'Тапните по карте чтобы выбрать адрес';
   showScreen('screen-checkout');
 }
 
@@ -2128,9 +2136,10 @@ let _mapExpanded = false;
 
 function initAddrMap() {
   if (_addrMap) { _addrMap.invalidateSize(); return; }
-  _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView([48.5703, 39.3412], 14);
+  const _center = [48.5568, 39.3372]; // ул. Газеты Луганская правда, Луганск
+  _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(_center, 15);
   L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=ru_RU', { maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
-  _addrMarker = L.marker([48.5703, 39.3412], { draggable: true }).addTo(_addrMap);
+  _addrMarker = L.marker(_center, { draggable: true }).addTo(_addrMap);
   _addrMap.on('click', (e) => {
     if (!_mapExpanded) { expandMap(); return; }
     moveMarkerAndGeocode(e.latlng);
