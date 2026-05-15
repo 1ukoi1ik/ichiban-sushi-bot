@@ -2117,14 +2117,13 @@ function toggleAddressFields() {
   const fields = document.getElementById('address-fields');
   const btn = document.getElementById('address-toggle-btn');
   const visible = fields.style.display !== 'none';
-  fields.style.display = visible ? 'none' : 'block';
   if (!visible) {
+    fields.style.display = 'block';
     btn.textContent = '📍 Скрыть адрес';
-    // сначала блок становится видимым, потом инициализируем карту
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      initAddrMap();
-    }));
+    // два rAF гарантируют что DOM отрисован перед инитом карты
+    requestAnimationFrame(() => requestAnimationFrame(() => initAddrMap()));
   } else {
+    fields.style.display = 'none';
     const street = document.getElementById('input-street').value.trim();
     const house = document.getElementById('input-house').value.trim();
     btn.textContent = street && house ? '✓ ' + street + ', д.' + house : '📍 Указать адрес';
@@ -2135,16 +2134,21 @@ function toggleAddressFields() {
 let _mapExpanded = false;
 
 function initAddrMap() {
+  const CENTER = [48.5604, 39.3259];
   if (_addrMap) { _addrMap.invalidateSize(); return; }
-  const _center = [48.5604, 39.3259]; // Корона, ул. Газеты Луганской Правды, Луганск
-  _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(_center, 15);
+  _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(CENTER, 15);
   L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=ru_RU', { maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
-  _addrMarker = L.marker(_center, { draggable: true }).addTo(_addrMap);
+  _addrMarker = L.marker(CENTER, { draggable: true }).addTo(_addrMap);
   _addrMap.on('click', (e) => {
     if (!_mapExpanded) {
+      // при первом тапе разворачиваем карту, ждём invalidateSize,
+      // затем перекладываем маркер по клику уже в правильной системе координат
+      const clickPoint = _addrMap.latLngToContainerPoint(e.latlng);
       expandMap();
-      // ждём invalidateSize, потом геокодируем с правильными координатами
-      setTimeout(() => moveMarkerAndGeocode(e.latlng), 350);
+      setTimeout(() => {
+        const latlng = _addrMap.containerPointToLatLng(clickPoint);
+        moveMarkerAndGeocode(latlng);
+      }, 370);
     } else {
       moveMarkerAndGeocode(e.latlng);
     }
