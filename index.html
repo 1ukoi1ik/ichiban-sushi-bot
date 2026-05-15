@@ -2137,11 +2137,15 @@ let _mapExpanded = false;
 
 function initAddrMap() {
   const CENTER = [48.5604, 39.3259];
+  const mapEl = document.getElementById('address-map');
   if (_addrMap) {
-    document.getElementById('address-map').style.height = '220px';
-    _addrMap.invalidateSize();
-    _addrMap.setView(CENTER, 15);
-    _addrMarker.setLatLng(CENTER);
+    mapEl.style.height = '220px';
+    // задержка нужна: контейнер только что стал visible, размер ещё не стабилен
+    setTimeout(() => {
+      _addrMap.invalidateSize();
+      _addrMap.setView(CENTER, 15, { animate: false });
+      _addrMarker.setLatLng(CENTER);
+    }, 50);
     return;
   }
   _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView(CENTER, 15);
@@ -2149,14 +2153,9 @@ function initAddrMap() {
   _addrMarker = L.marker(CENTER, { draggable: true }).addTo(_addrMap);
   _addrMap.on('click', (e) => {
     if (!_mapExpanded) {
-      // при первом тапе разворачиваем карту, ждём invalidateSize,
-      // затем перекладываем маркер по клику уже в правильной системе координат
-      const clickPoint = _addrMap.latLngToContainerPoint(e.latlng);
       expandMap();
-      setTimeout(() => {
-        const latlng = _addrMap.containerPointToLatLng(clickPoint);
-        moveMarkerAndGeocode(latlng);
-      }, 370);
+      // ждём invalidateSize в expandMap (320ms), берём latlng напрямую — он не меняется от resize
+      setTimeout(() => moveMarkerAndGeocode(e.latlng), 370);
     } else {
       moveMarkerAndGeocode(e.latlng);
     }
