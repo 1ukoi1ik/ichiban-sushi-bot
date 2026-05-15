@@ -847,6 +847,26 @@ html, body {
   margin-top: 10px;
 }
 
+.btn-map-action {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-map-confirm {
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  color: #fff;
+}
+.btn-map-collapse {
+  background: var(--card);
+  color: var(--sub);
+  border: 1px solid var(--border);
+}
+
 .address-suggestions {
   display: none;
   position: absolute;
@@ -1302,8 +1322,14 @@ html, body {
         📍 Указать адрес
       </button>
       <div id="address-fields" class="address-fields-expanded" style="display:none">
-        <div id="address-map" style="height:200px;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border)"></div>
-        <div id="map-hint" style="font-size:12px;color:var(--sub2);text-align:center;margin-bottom:10px">Тапните по карте чтобы выбрать адрес</div>
+        <div id="address-map-wrap" style="position:relative;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border)">
+          <div id="address-map" style="height:220px;transition:height 0.3s ease"></div>
+          <div id="map-hint" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);font-size:12px;color:#fff;text-align:center;padding:6px 10px;pointer-events:none">Тапните по карте чтобы выбрать адрес</div>
+        </div>
+        <div id="map-actions" style="display:none;gap:8px;margin-bottom:12px">
+          <button class="btn-map-action btn-map-confirm" onclick="confirmMapAddress()">✓ Подтвердить</button>
+          <button class="btn-map-action btn-map-collapse" onclick="collapseMap()">↑ Свернуть</button>
+        </div>
         <div style="position:relative">
           <input type="text" class="form-input" id="input-street" placeholder="Улица *" autocomplete="off" style="margin-bottom:8px">
           <div id="address-suggestions" class="address-suggestions"></div>
@@ -2098,13 +2124,42 @@ function toggleAddressFields() {
   }
 }
 
+let _mapExpanded = false;
+
 function initAddrMap() {
   if (_addrMap) { _addrMap.invalidateSize(); return; }
   _addrMap = L.map('address-map', { zoomControl: true, attributionControl: false }).setView([48.5703, 39.3412], 14);
   L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=ru_RU', { maxZoom: 18, minZoom: 10 }).addTo(_addrMap);
   _addrMarker = L.marker([48.5703, 39.3412], { draggable: true }).addTo(_addrMap);
-  _addrMap.on('click', (e) => moveMarkerAndGeocode(e.latlng));
+  _addrMap.on('click', (e) => {
+    if (!_mapExpanded) { expandMap(); return; }
+    moveMarkerAndGeocode(e.latlng);
+  });
   _addrMarker.on('dragend', () => moveMarkerAndGeocode(_addrMarker.getLatLng()));
+}
+
+function expandMap() {
+  if (_mapExpanded) return;
+  _mapExpanded = true;
+  document.getElementById('address-map').style.height = '420px';
+  document.getElementById('map-actions').style.display = 'flex';
+  document.getElementById('map-hint').textContent = 'Тапните по карте чтобы поставить метку';
+  setTimeout(() => _addrMap.invalidateSize(), 320);
+}
+
+function collapseMap() {
+  _mapExpanded = false;
+  document.getElementById('address-map').style.height = '220px';
+  document.getElementById('map-actions').style.display = 'none';
+  document.getElementById('map-hint').textContent = 'Тапните по карте чтобы развернуть';
+  setTimeout(() => _addrMap.invalidateSize(), 320);
+}
+
+function confirmMapAddress() {
+  collapseMap();
+  const street = document.getElementById('input-street').value.trim();
+  const house = document.getElementById('input-house').value.trim();
+  if (street) document.getElementById('map-hint').textContent = '✓ ' + [street, house].filter(Boolean).join(', д.');
 }
 
 async function moveMarkerAndGeocode(latlng) {
