@@ -2173,18 +2173,22 @@ function confirmMapAddress() {
 
 async function moveMarkerAndGeocode(latlng) {
   _addrMarker.setLatLng(latlng);
+  _addrMap.panTo(latlng);
   document.getElementById('map-hint').textContent = 'Определяем адрес...';
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json&accept-language=ru`, { headers: { 'User-Agent': 'IchibanSushiBot/1.0' } });
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json&accept-language=ru&zoom=18&addressdetails=1`, { headers: { 'User-Agent': 'IchibanSushiBot/1.0' } });
     const data = await res.json();
     const a = data.address || {};
-    const street = a.road || a.pedestrian || a.footway || '';
+    const street = a.road || a.pedestrian || a.footway || a.path || a.residential || a.neighbourhood || '';
     const house = a.house_number || '';
     if (street) document.getElementById('input-street').value = street;
     if (house) document.getElementById('input-house').value = house;
-    document.getElementById('map-hint').textContent = street ? '✓ ' + [street, house].filter(Boolean).join(', ') : 'Тапните по карте чтобы выбрать адрес';
+    else document.getElementById('input-house').value = '';
+    const label = street ? '✓ ' + [street, house].filter(Boolean).join(', д.') : '⚠️ Улица не определена — введите вручную';
+    document.getElementById('map-hint').textContent = label;
   } catch(e) {
     document.getElementById('map-hint').textContent = 'Не удалось определить адрес';
+    console.error('Geocode error:', e);
   }
 }
 
