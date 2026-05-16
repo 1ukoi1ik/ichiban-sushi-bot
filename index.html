@@ -2197,8 +2197,10 @@ function toggleCard(id, e) {
   document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
   if (!wasExpanded) {
     card.classList.add('expanded');
+    _cardScrollLock = true;
     setTimeout(() => {
       card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => { _cardScrollLock = false; }, 600);
     }, 150);
   }
 }
@@ -2518,11 +2520,11 @@ function showToast(msg) {
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-// закрыть карточку по тапу вне неё
-document.getElementById('screen-menu').addEventListener('click', e => {
-  if (!e.target.closest('.food-card')) {
-    document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
-  }
+// свернуть карточку при скролле, но не сразу после scrollIntoView
+let _cardScrollLock = false;
+document.getElementById('screen-menu').addEventListener('scroll', () => {
+  if (_cardScrollLock) return;
+  document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
 }, { passive: true });
 
 renderMenu();
