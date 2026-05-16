@@ -1548,7 +1548,7 @@ html, body {
         <polyline class="success-check-path" points="10,28 22,42 46,16"/>
       </svg>
     </div>
-    <div class="success-title">Заказ принят!</div>
+    <div class="success-title">Заказ отправлен!</div>
     <div class="success-sub">Номер вашего заказа</div>
     <div class="success-order-num" id="order-number">#0000</div>
     <div class="success-eta-card">
@@ -2274,7 +2274,7 @@ async function placeOrder() {
       showToast('⚠️ Ошибка сервера: ' + res.status);
       return;
     }
-    showToast('✅ Заказ отправлен на кухню');
+    showToast('📨 Заказ отправлен! Ожидайте обновления статуса');
     localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 0 }));
     document.getElementById('order-number').textContent = orderNum;
     showScreen('screen-success');
