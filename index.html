@@ -1614,7 +1614,7 @@ html, body {
 <!-- Profile Sheet -->
 <div class="profile-sheet" id="profile-sheet">
   <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
-  <div class="profile-avatar">👤</div>
+  <div class="profile-avatar" style="background:none;"><img id="profile-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;"></div>
   <div class="profile-name" id="profile-name">—</div>
   <div class="profile-sub" id="profile-phone">—</div>
   <div class="profile-stat"><span>Заказов всего</span><span class="profile-stat-val" id="profile-total-orders">—</span></div>
@@ -2598,8 +2598,19 @@ function updateDiscountBadge() {
   if (fab) fab.insertAdjacentHTML('afterend', `<div id="discount-badge" style="position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:8px;pointer-events:none;">−${_profile.discount}%</div>`);
 }
 
+function guessGender(name) {
+  const first = (name || '').split(' ')[0].toLowerCase();
+  const female = ['а','я','ь'];
+  return female.includes(first.slice(-1)) ? 'female' : 'male';
+}
+
 function openProfile() {
   if (!_profile) return;
+  const gender = guessGender(_profile.name);
+  const avatarUrl = gender === 'female'
+    ? 'https://storage.yandexcloud.net/ichiban-photos/female.png'
+    : 'https://storage.yandexcloud.net/ichiban-photos/male.png';
+  document.getElementById('profile-avatar-img').src = avatarUrl;
   document.getElementById('profile-name').textContent = _profile.name;
   document.getElementById('profile-phone').textContent = _profile.phone || 'Телефон не указан';
   document.getElementById('profile-total-orders').textContent = _profile.total_orders;
