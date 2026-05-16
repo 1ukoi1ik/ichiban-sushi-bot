@@ -2221,7 +2221,7 @@ function onGalleryClick(id, e) {
 }
 
 function toggleCard(id, e) {
-  if (e.target.tagName === 'BUTTON') return;
+  if (e && e.target && e.target.tagName === 'BUTTON') return;
   const card = document.getElementById('card-' + id);
   const wasExpanded = card.classList.contains('expanded');
   document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
@@ -2237,8 +2237,6 @@ function toggleCard(id, e) {
     const cardCenterInViewport = rectBefore.top + rectBefore.height / 2;
     const screenCenter = navH + (screenH - navH) / 2;
     const targetScroll = currentScroll + cardCenterInViewport - screenCenter;
-
-    console.log('CENTER', {rectTop: rectBefore.top, cardH: rectBefore.height, screenH, navH, currentScroll, cardCenterInViewport, screenCenter, targetScroll});
 
     card.classList.add('expanded');
     _cardScrollLock = true;
