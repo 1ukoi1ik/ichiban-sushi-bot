@@ -81,6 +81,7 @@ class Order(BaseModel):
     payment: str = "Наличными курьеру"
     items: List[OrderItem]
     total: int
+    discount: int = 0
     order_num: Optional[str] = None
     user_id: Optional[int] = None
 
@@ -98,7 +99,10 @@ def format_order(order: Order) -> str:
     lines = [f"🍣 *Новый заказ {num}*\n"]
     for item in order.items:
         lines.append(f"• {item.name} × {item.qty} — {item.price * item.qty:,} ₽")
-    lines.append(f"\n💰 *Итого: {order.total:,} ₽*")
+    if order.discount:
+        lines.append(f"\n💰 *Итого: {order.total:,} ₽* (скидка {order.discount}%)")
+    else:
+        lines.append(f"\n💰 *Итого: {order.total:,} ₽*")
     lines.append(f"💳 Оплата: {order.payment}")
     lines.append(f"\n👤 {order.name}")
     if order.phone:
@@ -250,6 +254,35 @@ async def telegram_webhook(request: Request):
             })
 
     return {"ok": True}
+
+
+@app.get("/profile/{user_id}")
+async def get_profile(user_id: int):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT name, phone, address,
+                       COUNT(*) as total_orders,
+                       SUM(CASE WHEN created_at >= date_trunc('month', NOW()) THEN total ELSE 0 END) as month_sum
+                FROM orders WHERE user_id=%s
+                GROUP BY name, phone, address
+                ORDER BY MAX(created_at) DESC LIMIT 1
+            """, (user_id,))
+            row = cur.fetchone()
+    if not row:
+        return {"ok": True, "new_client": True}
+    total = int(row["total_orders"])
+    discount = 15 if total >= 20 else 10 if total >= 10 else 5 if total >= 5 else 0
+    return {
+        "ok": True,
+        "new_client": False,
+        "name": row["name"],
+        "phone": row["phone"] or "",
+        "address": row["address"] or "",
+        "total_orders": total,
+        "month_sum": int(row["month_sum"] or 0),
+        "discount": discount,
+    }
 
 
 @app.get("/health")

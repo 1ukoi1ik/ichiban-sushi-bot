@@ -129,6 +129,17 @@ html, body {
 .about-trigger {
   margin-left: auto;
 }
+.profile-sheet { position:fixed; bottom:0; left:0; right:0; background:var(--card); border-radius:20px 20px 0 0; padding:24px 20px 32px; z-index:1000; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:85vh; overflow-y:auto; }
+.profile-sheet.open { transform:translateY(0); }
+.profile-avatar { width:64px; height:64px; border-radius:50%; background:var(--red); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 12px; }
+.profile-name { font-size:18px; font-weight:700; color:var(--fg); text-align:center; margin-bottom:4px; }
+.profile-sub { font-size:13px; color:#888; text-align:center; margin-bottom:20px; }
+.profile-stat { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--fg); }
+.profile-stat:last-of-type { border-bottom:none; }
+.profile-stat-val { font-weight:700; color:var(--fg); }
+.profile-discount { background:rgba(232,50,26,0.1); border:1px solid rgba(232,50,26,0.3); border-radius:12px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+.profile-discount-label { font-size:14px; color:#ccc; }
+.profile-discount-val { font-size:20px; font-weight:900; color:var(--red); }
 .about-dropdown {
   left: unset !important;
   right: 0;
@@ -1428,6 +1439,12 @@ html, body {
       <div class="cat-dropdown" id="cat-dropdown"></div>
     </div>
 
+    <!-- Профиль -->
+    <div class="cat-trigger" id="profile-trigger" onclick="openProfile()" style="display:none;">
+      <span>👤</span>
+      <span class="cat-active-label">Профиль</span>
+    </div>
+
     <!-- О нас -->
     <div class="cat-trigger about-trigger" id="about-trigger" onclick="toggleAboutDropdown()">
       <span>ℹ️</span>
@@ -1533,6 +1550,7 @@ html, body {
     <div class="order-summary">
       <div class="os-row"><span>Позиций</span><span id="co-count">0</span></div>
       <div class="os-row"><span>Сумма</span><span id="co-items-sum">0 ₽</span></div>
+      <div class="os-row" id="co-discount-row" style="display:none;color:var(--green);"><span>Скидка</span><span></span></div>
       <div class="os-row"><span>Доставка</span><span style="color:var(--green)">Бесплатно</span></div>
       <div class="os-divider"></div>
       <div class="os-total">
@@ -1592,6 +1610,22 @@ html, body {
     <button onclick="openOrderHistory()" style="width:100%; margin-top:10px; background:none; border:1px solid var(--border); border-radius:12px; color:#aaa; font-size:14px; padding:11px; cursor:pointer;">🕐 Прошлые заказы</button>
   </div>
 </div>
+
+<!-- Profile Sheet -->
+<div class="profile-sheet" id="profile-sheet">
+  <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+  <div class="profile-avatar">👤</div>
+  <div class="profile-name" id="profile-name">—</div>
+  <div class="profile-sub" id="profile-phone">—</div>
+  <div class="profile-stat"><span>Заказов всего</span><span class="profile-stat-val" id="profile-total-orders">—</span></div>
+  <div class="profile-stat"><span>Сумма за этот месяц</span><span class="profile-stat-val" id="profile-month-sum">—</span></div>
+  <div class="profile-discount">
+    <span class="profile-discount-label">Ваша скидка</span>
+    <span class="profile-discount-val" id="profile-discount">0%</span>
+  </div>
+  <button onclick="closeProfile()" style="width:100%;margin-top:20px;padding:13px;background:var(--card-hover);border:none;border-radius:12px;color:#aaa;font-size:14px;cursor:pointer;">Закрыть</button>
+</div>
+<div class="sheet-overlay" id="profile-overlay" onclick="closeProfile()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;"></div>
 
 <!-- Order History Sheet -->
 <div class="sheet" id="history-sheet">
@@ -1786,6 +1820,7 @@ let MENU = BRANDS.sushi.menu;
 let currentBrandKey = 'sushi';
 let cart = JSON.parse(localStorage.getItem('ichi_cart') || '{}');
 let currentCat = 'top';
+let _profile = null;
 
 function selectBrand(key) {
   const b = BRANDS[key];
@@ -1807,6 +1842,7 @@ function selectBrand(key) {
   renderCats(key);
   renderMenu();
   showScreen('screen-menu');
+  if (!_profile) loadProfile();
 }
 
 function changeBrand() {
@@ -2222,19 +2258,41 @@ function goToCheckout() {
   if (!getCartCount()) return;
   closeCart();
   const sum = getCartSum(), count = getCartCount();
+  const discount = _profile?.discount || 0;
+  const discountedTotal = discount ? Math.round(sum * (1 - discount / 100)) : sum;
   document.getElementById('co-count').textContent = count;
   document.getElementById('co-items-sum').textContent = sum.toLocaleString('ru') + ' ₽';
-  document.getElementById('co-total').textContent = sum.toLocaleString('ru') + ' ₽';
-  if (tg?.initDataUnsafe?.user?.first_name) {
-    document.getElementById('input-name').value = tg.initDataUnsafe.user.first_name;
+  document.getElementById('co-total').textContent = discountedTotal.toLocaleString('ru') + ' ₽';
+  const discountRow = document.getElementById('co-discount-row');
+  if (discount && discountRow) {
+    discountRow.style.display = 'flex';
+    discountRow.querySelector('span:last-child').textContent = '−' + discount + '% (−' + (sum - discountedTotal).toLocaleString('ru') + ' ₽)';
+  } else if (discountRow) { discountRow.style.display = 'none'; }
+  if (_profile) {
+    document.getElementById('input-name').value = _profile.name || '';
+    document.getElementById('input-phone').value = _profile.phone || '';
+    if (_profile.address) {
+      const parts = _profile.address.split(',');
+      document.getElementById('input-street').value = parts[0]?.trim() || '';
+      document.getElementById('input-house').value = parts[1]?.trim() || '';
+      document.getElementById('address-toggle-btn').textContent = '📍 ' + _profile.address;
+      document.getElementById('address-toggle-btn').classList.add('filled');
+      document.getElementById('address-fields').classList.add('expanded');
+    } else {
+      ['input-street','input-house','input-building','input-floor','input-flat'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
+      document.getElementById('address-toggle-btn').classList.remove('filled');
+      document.getElementById('address-fields').classList.remove('expanded');
+    }
+  } else {
+    if (tg?.initDataUnsafe?.user?.first_name) {
+      document.getElementById('input-name').value = tg.initDataUnsafe.user.first_name;
+    }
+    ['input-street','input-house','input-building','input-floor','input-flat'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
+    document.getElementById('address-toggle-btn').classList.remove('filled');
+    document.getElementById('address-fields').classList.remove('expanded');
   }
-  // сбросить поля адреса
-  ['input-street','input-house','input-building','input-floor','input-flat'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
-  document.getElementById('address-toggle-btn').classList.remove('filled');
-  document.getElementById('address-fields').classList.remove('expanded');
   showScreen('screen-checkout');
 }
 
@@ -2271,14 +2329,16 @@ async function placeOrder() {
     const item = MENU.find(m => m.id === +id);
     return { name: item.name, qty: entry.qty, price: item.price };
   });
-  const total = getCartSum();
+  const rawTotal = getCartSum();
+  const discount = _profile?.discount || 0;
+  const total = discount ? Math.round(rawTotal * (1 - discount / 100)) : rawTotal;
   const orderNum = '#' + Math.floor(1000 + Math.random() * 9000);
 
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum, user_id: tg?.initDataUnsafe?.user?.id || null })
+      body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, discount, order_num: orderNum, user_id: tg?.initDataUnsafe?.user?.id || null })
     });
     if (!res.ok) {
       showToast('⚠️ Ошибка сервера: ' + res.status);
@@ -2508,6 +2568,51 @@ document.addEventListener('DOMContentLoaded', () => {
     _addrDebounce = setTimeout(() => fetchAddressSuggestions(val), 500);
   });
 });
+
+async function loadProfile() {
+  const userId = tg?.initDataUnsafe?.user?.id;
+  if (!userId) return;
+  try {
+    const res = await fetch(`${API_URL}/profile/${userId}`);
+    const data = await res.json();
+    if (!data.ok || data.new_client) return;
+    _profile = data;
+    // приветствие в герое
+    const badge = document.getElementById('open-badge');
+    if (badge) {
+      const firstName = data.name.split(' ')[0];
+      badge.insertAdjacentHTML('afterend', `<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;">Рады снова видеть, ${firstName}! 👋</div>`);
+    }
+    // показать кнопку профиля
+    document.getElementById('profile-trigger').style.display = '';
+    // скидка в шапке корзины
+    updateDiscountBadge();
+  } catch(e) {}
+}
+
+function updateDiscountBadge() {
+  if (!_profile?.discount) return;
+  const existing = document.getElementById('discount-badge');
+  if (existing) return;
+  const fab = document.getElementById('cart-fab');
+  if (fab) fab.insertAdjacentHTML('afterend', `<div id="discount-badge" style="position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:8px;pointer-events:none;">−${_profile.discount}%</div>`);
+}
+
+function openProfile() {
+  if (!_profile) return;
+  document.getElementById('profile-name').textContent = _profile.name;
+  document.getElementById('profile-phone').textContent = _profile.phone || 'Телефон не указан';
+  document.getElementById('profile-total-orders').textContent = _profile.total_orders;
+  document.getElementById('profile-month-sum').textContent = _profile.month_sum.toLocaleString('ru') + ' ₽';
+  document.getElementById('profile-discount').textContent = _profile.discount ? _profile.discount + '%' : 'Нет';
+  document.getElementById('profile-sheet').classList.add('open');
+  document.getElementById('profile-overlay').style.display = 'block';
+}
+
+function closeProfile() {
+  document.getElementById('profile-sheet').classList.remove('open');
+  document.getElementById('profile-overlay').style.display = 'none';
+}
 
 async function fetchAddressSuggestions(query) {
   try {
