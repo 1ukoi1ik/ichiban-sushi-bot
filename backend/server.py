@@ -168,8 +168,7 @@ async def get_order_status(order_num: str):
 
 
 MINI_APP_URL = "https://1ukoi1ik.github.io/ichiban-sushi-bot/"
-import pathlib
-WELCOME_VIDEO_PATH = str(pathlib.Path(__file__).parent.parent / "welcome.mp4")
+WELCOME_VIDEO_URL = "https://github.com/1ukoi1ik/ichiban-sushi-bot/raw/main/welcome.mp4"
 _welcome_file_id = None
 
 
@@ -179,29 +178,14 @@ async def send_welcome(chat_id: int, client: httpx.AsyncClient):
         "text": "🍣 Сделать заказ",
         "web_app": {"url": MINI_APP_URL}
     }]]}
-    if _welcome_file_id:
-        await client.post(f"{TG_API}/sendAnimation", json={
-            "chat_id": chat_id,
-            "animation": _welcome_file_id,
-            "reply_markup": keyboard
-        })
-        return
-    import os
-    if os.path.exists(WELCOME_VIDEO_PATH):
-        with open(WELCOME_VIDEO_PATH, "rb") as f:
-            resp = await client.post(f"{TG_API}/sendAnimation", data={
-                "chat_id": str(chat_id),
-                "reply_markup": __import__("json").dumps(keyboard)
-            }, files={"animation": ("welcome.mp4", f, "video/mp4")})
-            result = resp.json()
-            if result.get("ok"):
-                _welcome_file_id = result["result"]["animation"]["file_id"]
-    else:
-        await client.post(f"{TG_API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": "🍣 Добро пожаловать! Нажми кнопку чтобы сделать заказ.",
-            "reply_markup": keyboard
-        })
+    resp = await client.post(f"{TG_API}/sendAnimation", json={
+        "chat_id": chat_id,
+        "animation": _welcome_file_id or WELCOME_VIDEO_URL,
+        "reply_markup": keyboard
+    })
+    result = resp.json()
+    if result.get("ok") and not _welcome_file_id:
+        _welcome_file_id = result["result"]["animation"]["file_id"]
 
 
 @app.post("/webhook")
@@ -211,12 +195,6 @@ async def telegram_webhook(request: Request):
     message = data.get("message")
     if message and message.get("text") == "/start":
         async with httpx.AsyncClient() as client:
-            import os, glob
-            search = glob.glob("/app/**/*.mp4", recursive=True) + glob.glob(str(pathlib.Path(__file__).parent.parent) + "/**/*.mp4", recursive=True)
-            await client.post(f"{TG_API}/sendMessage", json={
-                "chat_id": message["chat"]["id"],
-                "text": f"path={WELCOME_VIDEO_PATH}\nexists={os.path.exists(WELCOME_VIDEO_PATH)}\nfound={search}"
-            })
             await send_welcome(message["chat"]["id"], client)
         return {"ok": True}
 
