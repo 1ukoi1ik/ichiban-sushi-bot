@@ -2140,6 +2140,11 @@ function renderMenu() {
     }
   });
 
+  // Убираем card-animate-in после завершения анимации чтобы не блокировать transition
+  document.querySelectorAll('.food-card.card-animate-in').forEach(card => {
+    card.addEventListener('animationend', () => card.classList.remove('card-animate-in'), { once: true });
+  });
+
   // Барабан сразу после рендера
   requestAnimationFrame(() => applyDrumScroll());
 }
@@ -2219,26 +2224,24 @@ function toggleCard(id, e) {
   document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
   _expandedCard = null;
   if (!wasExpanded) {
+    // Запоминаем позицию ДО expand (до изменения высоты)
+    const screen = document.getElementById('screen-menu');
+    const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
+    const rectBefore = card.getBoundingClientRect();
+    const screenH = screen.clientHeight;
+    const currentScroll = screen.scrollTop;
+    // центрируем карточку по её текущей позиции
+    const cardCenterInViewport = rectBefore.top + rectBefore.height / 2;
+    const screenCenter = navH + (screenH - navH) / 2;
+    const targetScroll = currentScroll + cardCenterInViewport - screenCenter;
+
     card.classList.add('expanded');
     _cardScrollLock = true;
-    // ждём reflow после expanded чтобы getBoundingClientRect дал финальную высоту
-    requestAnimationFrame(() => {
-      const screen = document.getElementById('screen-menu');
-      const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
-      const rect = card.getBoundingClientRect();
-      const screenRect = screen.getBoundingClientRect();
-      const cardH = rect.height;
-      const screenH = screen.clientHeight;
-      const currentScroll = screen.scrollTop;
-      const cardOffsetInScreen = rect.top - screenRect.top;
-      // центр с поправкой на nav сверху
-      const targetScroll = currentScroll + cardOffsetInScreen - (screenH - cardH) / 2 + navH / 2;
-      screen.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
-      setTimeout(() => {
-        _cardScrollLock = false;
-        watchExpandedCard(card);
-      }, 400);
-    });
+    screen.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+    setTimeout(() => {
+      _cardScrollLock = false;
+      watchExpandedCard(card);
+    }, 500);
   }
 }
 
