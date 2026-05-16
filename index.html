@@ -2199,8 +2199,12 @@ function toggleCard(id, e) {
     card.classList.add('expanded');
     _cardScrollLock = true;
     setTimeout(() => {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => { _cardScrollLock = false; }, 600);
+      const screen = document.getElementById('screen-menu');
+      const cardTop = card.offsetTop;
+      const cardH = card.offsetHeight;
+      const screenH = screen.clientHeight;
+      screen.scrollTo({ top: cardTop - (screenH - cardH) / 2, behavior: 'smooth' });
+      setTimeout(() => { _cardScrollLock = false; }, 700);
     }, 150);
   }
 }
