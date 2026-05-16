@@ -48,15 +48,16 @@ html, body {
   inset: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              opacity 0.4s ease;
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s cubic-bezier(0.4,0,0.2,1),
+              filter 0.3s cubic-bezier(0.4,0,0.2,1);
   will-change: transform, opacity;
   padding-bottom: 110px;
   scrollbar-width: none;
 }
 .screen::-webkit-scrollbar { display: none; }
-.screen.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
-.screen.slide-left { transform: translateX(-25%); opacity: 0; pointer-events: none; }
+.screen.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; filter: blur(2px); }
+.screen.slide-left { transform: translateX(-18%) scale(0.96); opacity: 0; pointer-events: none; filter: blur(1px); }
 
 /* ══════════ HERO HEADER ══════════ */
 .hero {
@@ -348,15 +349,15 @@ html, body {
   border-radius: 20px;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1);
   position: relative;
-  animation: card-in 0.4s ease both;
+  animation: card-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(10px); filter: blur(5px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-.food-card:active { transform: scale(0.985); }
+.food-card:active { transform: scale(0.982); transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1); }
 .food-card.expanded {
   border-color: rgba(232,50,26,0.35);
   box-shadow: 0 0 0 1px rgba(232,50,26,0.15), 0 12px 40px rgba(0,0,0,0.5);
@@ -583,7 +584,7 @@ html, body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.1s;
+  transition: box-shadow 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.14s cubic-bezier(0.34,1.56,0.64,1);
   box-shadow: 0 4px 20px var(--red-glow);
   display: flex;
   align-items: center;
@@ -595,12 +596,12 @@ html, body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.18s;
 }
 .add-btn:hover::after { opacity: 1; }
-.add-btn:active { transform: scale(0.97); box-shadow: 0 2px 10px var(--red-glow); }
+.add-btn:active { transform: scale(0.96); box-shadow: 0 2px 10px var(--red-glow); transition: transform 0.08s; }
 .add-btn.in-cart {
   background: var(--card-hover);
   border: 1.5px solid var(--border-light);
@@ -680,12 +681,14 @@ html, body {
   background: var(--bg);
   z-index: 400;
   transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+  opacity: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-.sheet.open { transform: translateX(0); }
+.sheet.open { transform: translateX(0); opacity: 1; }
 .sheet-handle { display: none; }
 .sheet-header {
   padding: 16px 16px 14px;
@@ -730,10 +733,10 @@ html, body {
   gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
-  animation: item-in 0.25s ease both;
+  animation: item-in 0.32s cubic-bezier(0.22,1,0.36,1) both;
 }
 @keyframes item-in {
-  from { opacity: 0; transform: translateX(-8px); filter: blur(3px); }
+  from { opacity: 0; transform: translateX(-10px); filter: blur(4px); }
   to { opacity: 1; transform: translateX(0); filter: blur(0); }
 }
 .cart-item:last-child { border-bottom: none; }
@@ -770,10 +773,10 @@ html, body {
   align-items: center;
   justify-content: center;
   line-height: 1;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.14s cubic-bezier(0.34,1.56,0.64,1);
   font-weight: 700;
 }
-.qty-btn:active { background: var(--red); border-color: var(--red); transform: scale(0.9); }
+.qty-btn:active { background: var(--red); border-color: var(--red); transform: scale(0.88); transition: transform 0.07s; }
 .qty-num {
   font-size: 15px;
   font-weight: 800;
@@ -828,10 +831,10 @@ html, body {
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 6px 24px var(--red-glow);
-  transition: transform 0.1s, box-shadow 0.2s;
+  transition: transform 0.14s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1);
   letter-spacing: 0.2px;
 }
-.btn-primary:active { transform: scale(0.98); }
+.btn-primary:active { transform: scale(0.97); box-shadow: 0 3px 12px var(--red-glow); transition: transform 0.08s; }
 
 /* ══════════ PAGE HEADER ══════════ */
 .page-header {
@@ -1019,19 +1022,35 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 52px;
   margin-bottom: 28px;
-  box-shadow: 0 0 0 0 var(--red-glow);
-  animation: success-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-             success-glow 2s 0.6s ease infinite;
+  animation: success-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             success-glow 2.5s 0.55s ease infinite;
+}
+.success-check-svg {
+  width: 56px;
+  height: 56px;
+  overflow: visible;
+}
+.success-check-path {
+  stroke: #fff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw-check 0.45s 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes draw-check {
+  to { stroke-dashoffset: 0; }
 }
 @keyframes success-pop {
-  from { transform: scale(0.85) rotate(-10deg); opacity: 0; filter: blur(6px); }
-  to { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+  from { transform: scale(0.82); opacity: 0; filter: blur(8px); }
+  to { transform: scale(1); opacity: 1; filter: blur(0); }
 }
 @keyframes success-glow {
   0%, 100% { box-shadow: 0 0 30px var(--red-glow); }
-  50% { box-shadow: 0 0 60px var(--red-glow), 0 0 100px rgba(232,50,26,0.1); }
+  50% { box-shadow: 0 0 60px var(--red-glow), 0 0 100px rgba(232,50,26,0.12); }
 }
 .success-title {
   font-family: var(--font-display);
@@ -1039,15 +1058,15 @@ html, body {
   font-weight: 900;
   margin-bottom: 10px;
   letter-spacing: -0.5px;
-  animation: fade-up 0.4s 0.3s ease both;
+  animation: fade-up 0.4s 0.3s cubic-bezier(0.22,1,0.36,1) both;
 }
 .success-sub {
   font-size: 15px;
   color: var(--sub);
-  animation: fade-up 0.4s 0.4s ease both;
+  animation: fade-up 0.4s 0.4s cubic-bezier(0.22,1,0.36,1) both;
 }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(8px); filter: blur(5px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 .success-order-num {
@@ -1059,7 +1078,7 @@ html, body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 16px 0;
-  animation: fade-up 0.4s 0.5s ease both;
+  animation: fade-up 0.4s 0.5s cubic-bezier(0.22,1,0.36,1) both;
 }
 .success-eta-card {
   background: var(--surface);
@@ -1068,7 +1087,7 @@ html, body {
   padding: 20px 32px;
   margin: 8px 0 28px;
   width: 100%;
-  animation: fade-up 0.4s 0.6s ease both;
+  animation: fade-up 0.4s 0.6s cubic-bezier(0.22,1,0.36,1) both;
 }
 .success-eta-label { font-size: 12px; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px; }
 .success-eta-time {
@@ -1082,7 +1101,7 @@ html, body {
   justify-content: center;
   gap: 6px;
   margin-bottom: 32px;
-  animation: fade-up 0.4s 0.7s ease both;
+  animation: fade-up 0.4s 0.7s cubic-bezier(0.22,1,0.36,1) both;
 }
 .step {
   display: flex;
@@ -1139,7 +1158,7 @@ html, body {
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
-  animation: fade-up 0.4s 0.8s ease both;
+  animation: fade-up 0.4s 0.8s cubic-bezier(0.22,1,0.36,1) both;
 }
 .btn-secondary:active { background: var(--card-hover); }
 
@@ -1180,10 +1199,11 @@ html, body {
   font-weight: 600;
   z-index: 1000;
   white-space: nowrap;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0;
 }
-.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
 /* ══════════ PICKER ══════════ */
 .picker-screen {
@@ -1522,7 +1542,11 @@ html, body {
 <!-- ══ SCREEN: SUCCESS ══ -->
 <div id="screen-success" class="screen hidden">
   <div class="success-screen">
-    <div class="success-lottie">✓</div>
+    <div class="success-lottie">
+      <svg class="success-check-svg" viewBox="0 0 56 56">
+        <polyline class="success-check-path" points="10,28 22,42 46,16"/>
+      </svg>
+    </div>
     <div class="success-title">Заказ принят!</div>
     <div class="success-sub">Номер вашего заказа</div>
     <div class="success-order-num" id="order-number">#0000</div>
@@ -1990,7 +2014,7 @@ function renderMenu() {
         : 'Добавить в корзину';
       const tagsHtml = item.tags.map(t=>`<span class="tag ${t}">${TAG_MAP[t]||t}</span>`).join('');
       html += `
-        <div class="food-card" id="card-${item.id}" style="animation-delay:${idx*60}ms"
+        <div class="food-card" id="card-${item.id}" style="animation-delay:${Math.min(idx*45,180)}ms"
              onclick="toggleCard(${item.id},event)">
           ${item.imgs && item.imgs.length > 1
             ? renderCardMediaGallery(item)
