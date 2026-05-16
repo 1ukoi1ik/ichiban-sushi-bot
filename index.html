@@ -2063,6 +2063,7 @@ function updateDots(id, gallery) {
 
 var _galleryTouchStartX = 0;
 var _galleryTouchStartY = 0;
+var _galleryTouchStartTime = 0;
 var _galleryScrollStart = 0;
 var _galleryDidSwipe = false;
 var _galleryEl = null;
@@ -2070,6 +2071,7 @@ var _galleryEl = null;
 function onGalleryTouchStart(e) {
   _galleryTouchStartX = e.touches[0].clientX;
   _galleryTouchStartY = e.touches[0].clientY;
+  _galleryTouchStartTime = Date.now();
   _galleryDidSwipe = false;
   _galleryEl = e.currentTarget.querySelector('.card-gallery');
   _galleryScrollStart = _galleryEl ? _galleryEl.scrollLeft : 0;
@@ -2084,9 +2086,11 @@ function onGalleryTouchMove(e) {
   }
 }
 function onGalleryTouchEnd(id, e) {
-  var dx = Math.abs(e.changedTouches[0].clientX - _galleryTouchStartX);
+  var endX = e.changedTouches[0].clientX;
+  var dx = endX - _galleryTouchStartX;
+  var adx = Math.abs(dx);
   var dy = e.changedTouches[0].clientY - _galleryTouchStartY;
-  if (!_galleryDidSwipe && dy > 40 && dy > dx) {
+  if (!_galleryDidSwipe && Math.abs(dy) > 40 && Math.abs(dy) > adx) {
     var card = document.getElementById('card-' + id);
     if (card && card.classList.contains('expanded')) {
       card.classList.remove('expanded');
@@ -2095,8 +2099,17 @@ function onGalleryTouchEnd(id, e) {
   }
   if (!_galleryDidSwipe || !_galleryEl) return;
   var w = _galleryEl.offsetWidth;
-  var cur = Math.round(_galleryEl.scrollLeft / w);
-  _galleryEl.scrollTo({ left: cur * w, behavior: 'smooth' });
+  var elapsed = Date.now() - _galleryTouchStartTime;
+  var velocity = adx / elapsed; // px/ms
+  var cur = Math.round(_galleryScrollStart / w);
+  var total = _galleryEl.querySelectorAll('.card-gallery-slide').length;
+  var next;
+  if (velocity > 0.2 || adx > w * 0.25) {
+    next = dx < 0 ? Math.min(cur + 1, total - 1) : Math.max(cur - 1, 0);
+  } else {
+    next = cur;
+  }
+  _galleryEl.scrollTo({ left: next * w, behavior: 'smooth' });
 }
 function onGalleryTap(id) {
   if (_galleryDidSwipe) return;
