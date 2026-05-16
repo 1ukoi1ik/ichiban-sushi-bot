@@ -2240,6 +2240,7 @@ function toggleCard(id, e) {
 
     card.classList.add('expanded');
     _cardScrollLock = true;
+    alert('scroll: cur='+currentScroll+' target='+Math.round(targetScroll)+' screenH='+screenH+' cardTop='+Math.round(rectBefore.top)+' cardH='+Math.round(rectBefore.height));
     screen.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
     setTimeout(() => {
       _cardScrollLock = false;
