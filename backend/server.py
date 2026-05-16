@@ -168,7 +168,8 @@ async def get_order_status(order_num: str):
 
 
 MINI_APP_URL = "https://1ukoi1ik.github.io/ichiban-sushi-bot/"
-WELCOME_VIDEO_PATH = "/app/welcome.mp4"
+import pathlib
+WELCOME_VIDEO_PATH = str(pathlib.Path(__file__).parent.parent / "welcome.mp4")
 _welcome_file_id = None
 
 
