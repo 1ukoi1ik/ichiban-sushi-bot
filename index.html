@@ -2177,8 +2177,9 @@ function renderCartSheet() {
         <div class="empty-sub">Добавьте блюда из меню</div>
       </div>`;
   } else {
+    const allMenuItems = Object.values(BRANDS).flatMap(b => b.menu);
     document.getElementById('cart-body').innerHTML = entries.map(([id, item])=>{
-      const menuItem = MENU.find(m => m.id === +id);
+      const menuItem = allMenuItems.find(m => m.id === +id);
       const img = menuItem?.imgs?.[0] || menuItem?.img || '';
       return `
       <div class="cart-item">
@@ -2422,9 +2423,10 @@ function closeOrderHistory() {
 }
 
 function repeatOrder(itemsEncoded) {
+  const allItems = Object.values(BRANDS).flatMap(b => b.menu);
   const items = JSON.parse(decodeURIComponent(itemsEncoded));
   items.forEach(item => {
-    const menuItem = MENU.find(m => m.name === item.name);
+    const menuItem = allItems.find(m => m.name === item.name);
     if (!menuItem) return;
     if (!cart[menuItem.id]) cart[menuItem.id] = { name: menuItem.name, price: menuItem.price, qty: 0 };
     cart[menuItem.id].qty += item.qty;
