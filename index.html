@@ -356,15 +356,19 @@ html, body {
   padding: 0 14px;
 }
 
-/* drum wrapper — JS пишет transform сюда, без CSS transition */
+/* drum wrapper — JS пишет transform/opacity сюда, без CSS transition */
 .card-drum-wrap {
   transform-origin: center center;
+  will-change: transform, opacity;
 }
+/* Анимация появления — на самой карточке, wrapper не трогаем */
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); filter: blur(5px); }
+  from { opacity: 0; transform: translateY(16px) scale(0.96); filter: blur(4px); }
   to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0);   }
 }
-.card-drum-wrap { animation: card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.food-card.card-animate-in {
+  animation: card-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 .food-card {
   background: var(--card);
@@ -2071,8 +2075,9 @@ function renderMenu() {
         : 'Добавить в корзину';
       const tagsHtml = item.tags.map(t=>`<span class="tag ${t}">${TAG_MAP[t]||t}</span>`).join('');
       html += `
-        <div class="card-drum-wrap" id="drum-${item.id}" style="animation-delay:${Math.min(idx*45,180)}ms">
-        <div class="food-card" id="card-${item.id}"
+        <div class="card-drum-wrap" id="drum-${item.id}">
+        <div class="food-card card-animate-in" id="card-${item.id}"
+             style="animation-delay:${Math.min(idx*45,180)}ms"
              onclick="toggleCard(${item.id},event)">
           ${item.imgs && item.imgs.length > 1
             ? renderCardMediaGallery(item)
@@ -2135,6 +2140,8 @@ function renderMenu() {
     }
   });
 
+  // Барабан сразу после рендера
+  requestAnimationFrame(() => applyDrumScroll());
 }
 
 function updateDots(id, gallery) {
@@ -2206,28 +2213,32 @@ function onGalleryClick(id, e) {
 }
 
 function toggleCard(id, e) {
-  if (e.target.tagName==='BUTTON') return;
-  const card = document.getElementById('card-'+id);
+  if (e.target.tagName === 'BUTTON') return;
+  const card = document.getElementById('card-' + id);
   const wasExpanded = card.classList.contains('expanded');
   document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
+  if (_expandedObserver) { _expandedObserver.disconnect(); _expandedObserver = null; }
   if (!wasExpanded) {
     card.classList.add('expanded');
     _cardScrollLock = true;
-    setTimeout(() => {
+    // ждём reflow после expanded чтобы getBoundingClientRect дал финальную высоту
+    requestAnimationFrame(() => {
       const screen = document.getElementById('screen-menu');
+      const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
       const rect = card.getBoundingClientRect();
       const screenRect = screen.getBoundingClientRect();
       const cardH = rect.height;
       const screenH = screen.clientHeight;
       const currentScroll = screen.scrollTop;
       const cardOffsetInScreen = rect.top - screenRect.top;
-      const targetScroll = currentScroll + cardOffsetInScreen - (screenH - cardH) / 2;
-      screen.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      // центр с поправкой на nav сверху
+      const targetScroll = currentScroll + cardOffsetInScreen - (screenH - cardH) / 2 + navH / 2;
+      screen.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
       setTimeout(() => {
         _cardScrollLock = false;
         watchExpandedCard(card);
-      }, 700);
-    }, 150);
+      }, 600);
+    });
   }
 }
 
@@ -2552,16 +2563,25 @@ let _expandedObserver = null;
 function watchExpandedCard(card) {
   if (_expandedObserver) _expandedObserver.disconnect();
   const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
+  // rootMargin обрезает видимую зону сверху (хедер) и снизу (80px — кнопка)
   _expandedObserver = new IntersectionObserver(([entry]) => {
-    if (!_cardScrollLock && entry.intersectionRatio < 0.4) {
+    if (_cardScrollLock) return;
+    if (entry.intersectionRatio < 0.35) {
       card.classList.remove('expanded');
       _expandedObserver.disconnect();
+      _expandedObserver = null;
     }
-  }, { root: document.getElementById('screen-menu'), rootMargin: `-${navH}px 0px 0px 0px`, threshold: 0.4 });
+  }, {
+    root: document.getElementById('screen-menu'),
+    rootMargin: `-${navH}px 0px -80px 0px`,
+    threshold: [0, 0.1, 0.2, 0.35, 0.5]
+  });
   _expandedObserver.observe(card);
 }
 
 renderMenu();
+// Барабан сразу после рендера (до первого скролла)
+requestAnimationFrame(() => applyDrumScroll());
 const _savedScreen = sessionStorage.getItem('ichi_screen');
 showScreen(_savedScreen || 'screen-picker');
 updateOpenStatus();
