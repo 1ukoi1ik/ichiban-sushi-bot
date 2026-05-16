@@ -1838,6 +1838,9 @@ let currentBrandKey = 'sushi';
 let cart = JSON.parse(localStorage.getItem('ichi_cart') || '{}');
 let currentCat = 'top';
 let _profile = null;
+let _cardScrollLock = false;
+let _expandedCard = null;
+let _drumRaf = null;
 
 function selectBrand(key) {
   const b = BRANDS[key];
@@ -2562,8 +2565,7 @@ function showToast(msg) {
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-let _cardScrollLock = false;
-let _expandedCard = null;
+// объявлены ниже (перемещены наверх)
 
 function watchExpandedCard(card) {
   _expandedCard = card;
@@ -2723,7 +2725,7 @@ document.addEventListener('click', e => {
 });
 
 // Drum scroll — барабанный эффект, transform пишем на wrapper (без CSS transition)
-let _drumRaf = null;
+// объявлен ниже (перемещён наверх)
 function applyDrumScroll() {
   const screen = document.getElementById('screen-menu');
   if (!screen) return;
