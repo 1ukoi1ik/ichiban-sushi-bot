@@ -16,10 +16,10 @@ CHAT_ID = os.getenv("CHAT_ID")
 DATABASE_URL = os.getenv("DATABASE_URL")
 TG_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-STEP_LABELS = {1: "Принят ✓", 2: "Готовим 👨‍🍳", 3: "В пути 🛵", 4: "Доставлен 🏠"}
+STEP_LABELS = {0: "Отправлен 📨", 1: "Принят ✓", 2: "Готовим 👨‍🍳", 3: "В пути 🛵", 4: "Доставлен 🏠"}
 
 CLIENT_MESSAGES = {
-    1: "✅ Ваш заказ принят! Мы уже начинаем его готовить.",
+    1: "✅ Ваш заказ принят в работу! Уже начинаем готовить.",
     2: "👨‍🍳 Ваш заказ готовится! Совсем скоро будет готов.",
     3: "🛵 Ваш заказ у курьера! Ожидайте доставку.",
     4: "🏠 Вы получили заказ. Приятного аппетита! 🍣",
@@ -103,7 +103,7 @@ def format_order(order: Order) -> str:
     lines.append(f"📍 {order.address}")
     if order.comment:
         lines.append(f"💬 {order.comment}")
-    lines.append(f"\n📋 Статус: {STEP_LABELS[1]}")
+    lines.append(f"\n📋 Статус: {STEP_LABELS[0]}")
     return "\n".join(lines)
 
 
@@ -113,13 +113,13 @@ async def receive_order(order: Order):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=1, user_id=%s",
-                (num, 1, order.name, order.phone, order.address, order.total, order.user_id, order.user_id)
+                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=0, user_id=%s",
+                (num, 0, order.name, order.phone, order.address, order.total, order.user_id, order.user_id)
             )
         conn.commit()
 
     text = format_order(order)
-    keyboard = make_status_keyboard(num, 1)
+    keyboard = make_status_keyboard(num, 0)
     payload = {"chat_id": CHAT_ID, "text": text, "parse_mode": "Markdown"}
     if keyboard:
         payload["reply_markup"] = keyboard

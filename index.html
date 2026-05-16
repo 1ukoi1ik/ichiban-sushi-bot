@@ -1458,6 +1458,7 @@ html, body {
       </div>
     </div>
     <div style="margin-top:10px; display:flex; gap:6px;">
+      <div class="order-step" id="ostep-0">Отправлен</div>
       <div class="order-step" id="ostep-1">Принят ✓</div>
       <div class="order-step" id="ostep-2">Готовим</div>
       <div class="order-step" id="ostep-3">В пути</div>
@@ -2274,7 +2275,7 @@ async function placeOrder() {
       return;
     }
     showToast('✅ Заказ отправлен на кухню');
-    localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 1 }));
+    localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 0 }));
     document.getElementById('order-number').textContent = orderNum;
     showScreen('screen-success');
     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -2309,15 +2310,15 @@ function showActiveOrderBanner() {
   if (!order) { banner.classList.remove('visible'); return; }
   banner.classList.add('visible');
   document.getElementById('banner-order-num').textContent = order.num;
-  const steps = ['ostep-1','ostep-2','ostep-3','ostep-4'];
-  const s = order.step || 1;
+  const steps = ['ostep-0','ostep-1','ostep-2','ostep-3','ostep-4'];
+  const s = order.step || 0;
   steps.forEach((id, i) => {
     const el = document.getElementById(id);
     el.classList.remove('done', 'active');
     if (i+1 < s) el.classList.add('done');
     else if (i+1 === s) el.classList.add('active');
   });
-  const labels = ['Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
+  const labels = ['Отправлен 📨', 'Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
   document.getElementById('banner-order-status').textContent = labels[(s-1)] || 'Готовим';
   const delivered = s >= 4;
   document.getElementById('banner-order-label').textContent = delivered ? 'Заказ доставлен 🏠' : 'Ваш заказ в работе';
@@ -2349,7 +2350,7 @@ async function openOrderHistory() {
       body.innerHTML = '<div style="text-align:center; color:#666; padding:48px 24px; font-size:15px;">Заказов пока нет</div>';
       return;
     }
-    const stepLabels = ['', 'Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
+    const stepLabels = ['Отправлен 📨', 'Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
     body.innerHTML = data.orders.map(o => `
       <div style="padding:14px 16px; border-bottom:1px solid var(--border);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -2404,6 +2405,7 @@ setInterval(async () => {
       if (data.step === 4) showToast('🏠 Заказ доставлен!');
       else if (data.step === 3) showToast('🛵 Курьер уже едет!');
       else if (data.step === 2) showToast('👨‍🍳 Ресторан начал готовить');
+      else if (data.step === 1) showToast('✅ Заказ принят в работу!');
     }
   } catch(e) {
     console.error('Poll error:', e);
