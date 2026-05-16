@@ -2419,8 +2419,10 @@ function closeOrderHistory() {
 function repeatOrder(itemsEncoded) {
   const items = JSON.parse(decodeURIComponent(itemsEncoded));
   items.forEach(item => {
-    if (!cart[item.name]) cart[item.name] = { name: item.name, price: item.price, qty: 0 };
-    cart[item.name].qty += item.qty;
+    const menuItem = MENU.find(m => m.name === item.name);
+    if (!menuItem) return;
+    if (!cart[menuItem.id]) cart[menuItem.id] = { name: menuItem.name, price: menuItem.price, qty: 0 };
+    cart[menuItem.id].qty += item.qty;
   });
   saveCart();
   updateCartUI();
