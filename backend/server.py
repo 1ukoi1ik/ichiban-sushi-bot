@@ -211,6 +211,12 @@ async def telegram_webhook(request: Request):
     message = data.get("message")
     if message and message.get("text") == "/start":
         async with httpx.AsyncClient() as client:
+            import os, glob
+            search = glob.glob("/app/**/*.mp4", recursive=True) + glob.glob(str(pathlib.Path(__file__).parent.parent) + "/**/*.mp4", recursive=True)
+            await client.post(f"{TG_API}/sendMessage", json={
+                "chat_id": message["chat"]["id"],
+                "text": f"path={WELCOME_VIDEO_PATH}\nexists={os.path.exists(WELCOME_VIDEO_PATH)}\nfound={search}"
+            })
             await send_welcome(message["chat"]["id"], client)
         return {"ok": True}
 
