@@ -1953,7 +1953,7 @@ function pickCat(cat, e) {
 }
 
 // Close dropdown when tapping outside
-document.addEventListener('click', e => {
+function _closeDropdownsOutside(e) {
   const catTrigger = document.getElementById('cat-trigger');
   const aboutTrigger = document.getElementById('about-trigger');
   if (catTrigger && !catTrigger.contains(e.target)) {
@@ -1964,7 +1964,9 @@ document.addEventListener('click', e => {
     document.getElementById('about-dropdown').classList.remove('open');
     aboutTrigger.classList.remove('open');
   }
-});
+}
+document.addEventListener('click', _closeDropdownsOutside);
+document.addEventListener('touchstart', _closeDropdownsOutside, { passive: true });
 
 function filterCat(cat, btnEl) {
   currentCat = cat;
