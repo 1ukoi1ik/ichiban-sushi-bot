@@ -2240,10 +2240,9 @@ function toggleCard(id, e) {
 
     card.classList.add('expanded');
     _cardScrollLock = true;
-    let _dbg = document.getElementById('_dbg');
-    if (!_dbg) { _dbg = document.createElement('div'); _dbg.id='_dbg'; _dbg.style='position:fixed;top:60px;left:0;right:0;background:red;color:#fff;font-size:12px;padding:6px;z-index:9999;'; document.body.appendChild(_dbg); }
-    _dbg.textContent = 'cur='+currentScroll+' tgt='+Math.round(targetScroll)+' sH='+screenH+' cTop='+Math.round(rectBefore.top)+' cH='+Math.round(rectBefore.height)+' nav='+navH;
-    screen.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+    // delta = сколько нужно доскроллить чтобы карточка оказалась по центру
+    const delta = cardCenterInViewport - screenCenter;
+    screen.scrollBy({ top: delta, behavior: 'smooth' });
     setTimeout(() => {
       _cardScrollLock = false;
       watchExpandedCard(card);
