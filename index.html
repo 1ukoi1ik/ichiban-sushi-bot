@@ -131,6 +131,7 @@ html, body {
   left: unset !important;
   right: 0;
   min-width: 240px;
+  transform-origin: top right;
 }
 .about-item {
   padding: 10px 14px;
@@ -352,8 +353,8 @@ html, body {
   animation: card-in 0.4s ease both;
 }
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 .food-card:active { transform: scale(0.985); }
 .food-card.expanded {
@@ -732,8 +733,8 @@ html, body {
   animation: item-in 0.25s ease both;
 }
 @keyframes item-in {
-  from { opacity: 0; transform: translateX(-8px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateX(-8px); filter: blur(3px); }
+  to { opacity: 1; transform: translateX(0); filter: blur(0); }
 }
 .cart-item:last-child { border-bottom: none; }
 .cart-item-img {
@@ -927,18 +928,15 @@ html, body {
 
 
 .address-suggestions {
-  display: none;
   position: absolute;
   left: 0; right: 0;
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 8px;
   z-index: 100;
-  max-height: 200px;
   overflow-y: auto;
   margin-top: 4px;
 }
-.address-suggestions.visible { display: block; }
 .address-suggestion-item {
   padding: 10px 14px;
   font-size: 14px;
@@ -1028,8 +1026,8 @@ html, body {
              success-glow 2s 0.6s ease infinite;
 }
 @keyframes success-pop {
-  from { transform: scale(0) rotate(-15deg); opacity: 0; }
-  to { transform: scale(1) rotate(0deg); opacity: 1; }
+  from { transform: scale(0.85) rotate(-10deg); opacity: 0; filter: blur(6px); }
+  to { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
 }
 @keyframes success-glow {
   0%, 100% { box-shadow: 0 0 30px var(--red-glow); }
@@ -1049,8 +1047,8 @@ html, body {
   animation: fade-up 0.4s 0.4s ease both;
 }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 .success-order-num {
   font-family: var(--font-display);
@@ -1244,6 +1242,99 @@ html, body {
   cursor: pointer;
   letter-spacing: 0.3px;
 }
+
+/* ══════════ ACTIVE ORDER BANNER ══════════ */
+#active-order-banner {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              transform 0.3s ease,
+              margin 0.3s ease;
+  margin: 0 16px;
+}
+#active-order-banner.visible {
+  max-height: 140px;
+  opacity: 1;
+  transform: translateY(0);
+  margin: 12px 16px 0;
+}
+
+/* ══════════ ADDRESS FIELDS ══════════ */
+.address-fields-expanded {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.28s ease;
+  margin-top: 0;
+}
+.address-fields-expanded.expanded {
+  max-height: 400px;
+  opacity: 1;
+  margin-top: 10px;
+}
+
+/* ══════════ ADDRESS SUGGESTIONS ══════════ */
+.address-suggestions {
+  display: block;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease;
+}
+.address-suggestions.visible {
+  max-height: 200px;
+  opacity: 1;
+}
+
+/* ══════════ PICKER ITEMS STAGGER ══════════ */
+.picker-item {
+  animation: picker-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes picker-in {
+  from { opacity: 0; transform: translateX(-12px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateX(0);     filter: blur(0);   }
+}
+.picker-item:nth-child(1) { animation-delay: 0.05s; }
+.picker-item:nth-child(2) { animation-delay: 0.10s; }
+.picker-item:nth-child(3) { animation-delay: 0.15s; }
+.picker-item:nth-child(4) { animation-delay: 0.20s; }
+.picker-item:nth-child(5) { animation-delay: 0.25s; }
+.picker-item:nth-child(6) { animation-delay: 0.30s; }
+.picker-item:nth-child(7) { animation-delay: 0.35s; }
+
+/* ══════════ FAB BOUNCE ON ADD ══════════ */
+@keyframes fab-bounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  65%  { transform: scale(0.94); }
+  85%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.cart-fab.bounce { animation: fab-bounce 0.42s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* ══════════ ORDER STEP ACTIVE PULSE ══════════ */
+@keyframes step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232,50,26,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(232,50,26,0); }
+}
+.order-step.active {
+  animation: step-pulse 1.8s ease infinite;
+}
+
+/* ══════════ PREFERS-REDUCED-MOTION ══════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -1332,7 +1423,7 @@ html, body {
     </div>
   </div>
 
-  <div id="active-order-banner" style="display:none; margin:12px 16px 0; background:#1a1a1a; border:1px solid rgba(232,50,26,0.3); border-radius:16px; padding:14px 16px;">
+  <div id="active-order-banner" style="background:#1a1a1a; border:1px solid rgba(232,50,26,0.3); border-radius:16px; padding:14px 16px;">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <div>
         <div style="font-size:12px; color:#888; margin-bottom:4px;" id="banner-order-label">Ваш заказ в работе</div>
@@ -1378,7 +1469,7 @@ html, body {
       <button class="address-toggle-btn" id="address-toggle-btn" onclick="toggleAddressFields()">
         📍 Указать адрес
       </button>
-      <div id="address-fields" class="address-fields-expanded" style="display:none">
+      <div id="address-fields" class="address-fields-expanded">
         <div style="position:relative">
           <input type="text" class="form-input" id="input-street" placeholder="Улица *" autocomplete="off" style="margin-bottom:8px">
           <div id="address-suggestions" class="address-suggestions"></div>
@@ -1714,6 +1805,11 @@ function addToCart(id, btnEl) {
   cart[id].qty++;
   saveCart();
   updateCartUI();
+  const fab = document.getElementById('cart-fab');
+  fab.classList.remove('bounce');
+  void fab.offsetWidth;
+  fab.classList.add('bounce');
+  fab.addEventListener('animationend', () => fab.classList.remove('bounce'), { once: true });
   if (btnEl) {
     btnEl.innerHTML = `<span class="cart-icon">🛒</span> В корзине: ${cart[id].qty}`;
     btnEl.classList.add('in-cart');
@@ -2089,7 +2185,7 @@ function goToCheckout() {
   });
   document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
   document.getElementById('address-toggle-btn').classList.remove('filled');
-  document.getElementById('address-fields').style.display = 'none';
+  document.getElementById('address-fields').classList.remove('expanded');
   showScreen('screen-checkout');
 }
 
@@ -2172,8 +2268,8 @@ function resetAndGoMenu() {
 function showActiveOrderBanner() {
   const order = JSON.parse(localStorage.getItem('ichi_active_order') || 'null');
   const banner = document.getElementById('active-order-banner');
-  if (!order) { banner.style.display = 'none'; return; }
-  banner.style.display = 'block';
+  if (!order) { banner.classList.remove('visible'); return; }
+  banner.classList.add('visible');
   document.getElementById('banner-order-num').textContent = order.num;
   const steps = ['ostep-1','ostep-2','ostep-3','ostep-4'];
   const s = order.step || 1;
@@ -2187,12 +2283,14 @@ function showActiveOrderBanner() {
   document.getElementById('banner-order-status').textContent = labels[(s-1)] || 'Готовим';
   const delivered = s >= 4;
   document.getElementById('banner-order-label').textContent = delivered ? 'Заказ доставлен 🏠' : 'Ваш заказ в работе';
-  document.getElementById('banner-dismiss-btn').style.display = delivered ? 'flex' : 'none';
+  const dismissBtn = document.getElementById('banner-dismiss-btn');
+  dismissBtn.style.display = delivered ? 'flex' : 'none';
+  dismissBtn.style.opacity = delivered ? '1' : '0';
 }
 
 function dismissOrder() {
   localStorage.removeItem('ichi_active_order');
-  document.getElementById('active-order-banner').style.display = 'none';
+  document.getElementById('active-order-banner').classList.remove('visible');
 }
 
 async function openOrderHistory() {
@@ -2272,13 +2370,13 @@ setInterval(async () => {
 function toggleAddressFields() {
   const fields = document.getElementById('address-fields');
   const btn = document.getElementById('address-toggle-btn');
-  const visible = fields.style.display !== 'none';
-  if (!visible) {
-    fields.style.display = 'block';
+  const isExpanded = fields.classList.contains('expanded');
+  if (!isExpanded) {
+    fields.classList.add('expanded');
     btn.textContent = '📍 Скрыть адрес';
-    setTimeout(() => document.getElementById('input-street').focus(), 100);
+    setTimeout(() => document.getElementById('input-street').focus(), 380);
   } else {
-    fields.style.display = 'none';
+    fields.classList.remove('expanded');
     const street = document.getElementById('input-street').value.trim();
     const house = document.getElementById('input-house').value.trim();
     btn.textContent = street && house ? '✓ ' + street + ', д.' + house : '📍 Указать адрес';
