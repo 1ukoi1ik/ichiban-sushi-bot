@@ -375,17 +375,17 @@ html, body {
   border-radius: 20px;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color 0.28s cubic-bezier(0.4,0,0.2,1),
-              box-shadow   0.28s cubic-bezier(0.4,0,0.2,1),
-              transform    0.32s cubic-bezier(0.22,1,0.36,1);
+  transition: border-color 0.3s cubic-bezier(0.4,0,0.2,1),
+              box-shadow   0.3s cubic-bezier(0.4,0,0.2,1),
+              transform    0.45s cubic-bezier(0.34,1.4,0.64,1);
   position: relative;
   will-change: transform;
 }
-.food-card:active { transform: scale(0.972); transition: transform 0.08s cubic-bezier(0.34,1.56,0.64,1); }
+.food-card:active { transform: scale(0.96); transition: transform 0.1s ease; }
 .food-card.expanded {
   border-color: rgba(232,50,26,0.4);
   box-shadow: 0 0 0 1px rgba(232,50,26,0.18), 0 16px 48px rgba(0,0,0,0.55);
-  transform: scale(1.012);
+  transform: scale(1.03);
 }
 .food-card.expanded .card-gallery-wrap,
 .food-card.expanded .card-image-wrap {
@@ -2237,7 +2237,7 @@ function toggleCard(id, e) {
       setTimeout(() => {
         _cardScrollLock = false;
         watchExpandedCard(card);
-      }, 600);
+      }, 400);
     });
   }
 }
@@ -2753,8 +2753,9 @@ document.getElementById('screen-menu').addEventListener('scroll', () => {
       const rect = _expandedCard.getBoundingClientRect();
       const screenH = window.innerHeight;
       // карточка ушла за верхний хедер или за нижний край
-      const hiddenTop = rect.bottom < navH + rect.height * 0.35;
-      const hiddenBot = rect.top > screenH - rect.height * 0.35;
+      // сворачиваем когда видно меньше 30% карточки сверху или снизу
+      const hiddenTop = rect.bottom < navH + rect.height * 0.3;
+      const hiddenBot = rect.top > screenH - rect.height * 0.3;
       if (hiddenTop || hiddenBot) {
         _expandedCard.classList.remove('expanded');
         _expandedCard = null;
