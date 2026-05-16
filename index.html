@@ -356,26 +356,32 @@ html, body {
   padding: 0 14px;
 }
 
+/* drum wrapper — JS пишет transform сюда, без CSS transition */
+.card-drum-wrap {
+  transform-origin: center center;
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); filter: blur(5px); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0);   }
+}
+.card-drum-wrap { animation: card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
 .food-card {
   background: var(--card);
   border-radius: 20px;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+  transition: border-color 0.28s cubic-bezier(0.4,0,0.2,1),
+              box-shadow   0.28s cubic-bezier(0.4,0,0.2,1),
+              transform    0.32s cubic-bezier(0.22,1,0.36,1);
   position: relative;
-  animation: card-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: transform, opacity;
+  will-change: transform;
 }
-@keyframes card-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-.food-card:active { transform: scale(0.974) !important; opacity: 0.85 !important; transition: transform 0.1s cubic-bezier(0.34,1.56,0.64,1), opacity 0.1s !important; }
+.food-card:active { transform: scale(0.972); transition: transform 0.08s cubic-bezier(0.34,1.56,0.64,1); }
 .food-card.expanded {
   border-color: rgba(232,50,26,0.4);
   box-shadow: 0 0 0 1px rgba(232,50,26,0.18), 0 16px 48px rgba(0,0,0,0.55);
-  transform: scale(1.012) !important;
-  opacity: 1 !important;
+  transform: scale(1.012);
 }
 .food-card.expanded .card-gallery-wrap,
 .food-card.expanded .card-image-wrap {
@@ -387,11 +393,11 @@ html, body {
 }
 .card-gallery-wrap,
 .card-image-wrap {
-  transition: height 0.45s cubic-bezier(0.34, 1.28, 0.64, 1);
+  transition: height 0.38s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-gallery,
 .card-gallery-slide img {
-  transition: height 0.45s cubic-bezier(0.34, 1.28, 0.64, 1);
+  transition: height 0.38s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* IMAGE */
@@ -548,26 +554,24 @@ html, body {
 }
 .card-weight { font-size: 10px; color: var(--sub2); margin-top: 1px; }
 
-/* Expand desc */
+/* Expand desc — grid-rows trick: GPU-friendly, нет клиппинга */
 .card-desc-wrap {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.48s cubic-bezier(0.34, 1.2, 0.64, 1),
-              opacity 0.3s ease 0.08s,
-              padding 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+  display: grid;
+  grid-template-rows: 0fr;
   opacity: 0;
+  transform: translateY(8px);
+  transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity   0.28s ease 0.06s,
+              transform 0.36s cubic-bezier(0.22, 1, 0.36, 1) 0.04s,
+              padding   0.32s cubic-bezier(0.22, 1, 0.36, 1);
   padding-top: 0;
-  transform: translateY(6px);
 }
+.card-desc-wrap > * { overflow: hidden; }
 .food-card.expanded .card-desc-wrap {
-  max-height: 200px;
+  grid-template-rows: 1fr;
   opacity: 1;
-  padding-top: 10px;
   transform: translateY(0);
-  transition: max-height 0.48s cubic-bezier(0.34, 1.2, 0.64, 1),
-              opacity 0.3s ease 0.1s,
-              padding 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
-              transform 0.4s cubic-bezier(0.34, 1.28, 0.64, 1) 0.05s;
+  padding-top: 10px;
 }
 .card-desc {
   font-size: 13px;
@@ -2067,7 +2071,8 @@ function renderMenu() {
         : 'Добавить в корзину';
       const tagsHtml = item.tags.map(t=>`<span class="tag ${t}">${TAG_MAP[t]||t}</span>`).join('');
       html += `
-        <div class="food-card" id="card-${item.id}" style="animation-delay:${Math.min(idx*45,180)}ms"
+        <div class="card-drum-wrap" id="drum-${item.id}" style="animation-delay:${Math.min(idx*45,180)}ms">
+        <div class="food-card" id="card-${item.id}"
              onclick="toggleCard(${item.id},event)">
           ${item.imgs && item.imgs.length > 1
             ? renderCardMediaGallery(item)
@@ -2090,6 +2095,7 @@ function renderMenu() {
               ${btnTxt}
             </button>
           </div>
+        </div>
         </div>`;
     });
     html += '</div><div style="height:6px"></div>';
@@ -2209,10 +2215,14 @@ function toggleCard(id, e) {
     _cardScrollLock = true;
     setTimeout(() => {
       const screen = document.getElementById('screen-menu');
-      const cardTop = card.offsetTop;
-      const cardH = card.offsetHeight;
+      const rect = card.getBoundingClientRect();
+      const screenRect = screen.getBoundingClientRect();
+      const cardH = rect.height;
       const screenH = screen.clientHeight;
-      screen.scrollTo({ top: cardTop - (screenH - cardH) / 2, behavior: 'smooth' });
+      const currentScroll = screen.scrollTop;
+      const cardOffsetInScreen = rect.top - screenRect.top;
+      const targetScroll = currentScroll + cardOffsetInScreen - (screenH - cardH) / 2;
+      screen.scrollTo({ top: targetScroll, behavior: 'smooth' });
       setTimeout(() => {
         _cardScrollLock = false;
         watchExpandedCard(card);
@@ -2702,24 +2712,31 @@ document.addEventListener('click', e => {
   }
 });
 
-// Drum scroll — карточки масштабируются по расстоянию от центра экрана
+// Drum scroll — барабан без перспективы, transform пишем на wrapper
 let _drumRaf = null;
 function applyDrumScroll() {
   const screen = document.getElementById('screen-menu');
   if (!screen) return;
+  const screenRect = screen.getBoundingClientRect();
   const screenH = screen.clientHeight;
-  const center = screen.scrollTop + screenH / 2;
-  const cards = screen.querySelectorAll('.food-card');
-  cards.forEach(card => {
-    if (card.classList.contains('expanded')) return;
-    const cardCenter = card.offsetTop + card.offsetHeight / 2;
-    const dist = Math.abs(center - cardCenter);
+  const centerY = screenRect.top + screenH / 2;
+  const wraps = screen.querySelectorAll('.card-drum-wrap');
+  wraps.forEach(wrap => {
+    const card = wrap.querySelector('.food-card');
+    if (card && card.classList.contains('expanded')) {
+      wrap.style.transform = '';
+      wrap.style.opacity = '';
+      return;
+    }
+    const rect = wrap.getBoundingClientRect();
+    const cardCenterY = rect.top + rect.height / 2;
+    const dist = Math.abs(centerY - cardCenterY);
     const maxDist = screenH * 0.6;
     const t = Math.min(dist / maxDist, 1);
     const scale = 1 - t * 0.04;
     const opacity = 1 - t * 0.28;
-    card.style.transform = `scale(${scale.toFixed(4)})`;
-    card.style.opacity = opacity.toFixed(4);
+    wrap.style.transform = `scale(${scale.toFixed(4)})`;
+    wrap.style.opacity = opacity.toFixed(4);
   });
 }
 document.getElementById('screen-menu').addEventListener('scroll', () => {
