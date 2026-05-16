@@ -2315,8 +2315,8 @@ function showActiveOrderBanner() {
   steps.forEach((id, i) => {
     const el = document.getElementById(id);
     el.classList.remove('done', 'active');
-    if (i+1 < s) el.classList.add('done');
-    else if (i+1 === s) el.classList.add('active');
+    if (i < s) el.classList.add('done');
+    else if (i === s) el.classList.add('active');
   });
   const labels = ['Отправлен 📨', 'Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
   document.getElementById('banner-order-status').textContent = labels[(s-1)] || 'Готовим';
