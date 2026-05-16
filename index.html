@@ -361,13 +361,13 @@ html, body {
   transform-origin: center center;
   will-change: transform, opacity;
 }
-/* Анимация появления — на самой карточке, wrapper не трогаем */
+/* Анимация появления — на wrapper, не мешает transition карточки */
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); filter: blur(4px); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0);   }
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
-.food-card.card-animate-in {
-  animation: card-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+.card-drum-wrap.card-animate-in {
+  animation: card-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .food-card {
@@ -2075,9 +2075,9 @@ function renderMenu() {
         : 'Добавить в корзину';
       const tagsHtml = item.tags.map(t=>`<span class="tag ${t}">${TAG_MAP[t]||t}</span>`).join('');
       html += `
-        <div class="card-drum-wrap" id="drum-${item.id}">
-        <div class="food-card card-animate-in" id="card-${item.id}"
-             style="animation-delay:${Math.min(idx*45,180)}ms"
+        <div class="card-drum-wrap card-animate-in" id="drum-${item.id}"
+             style="animation-delay:${Math.min(idx*45,180)}ms">
+        <div class="food-card" id="card-${item.id}"
              onclick="toggleCard(${item.id},event)">
           ${item.imgs && item.imgs.length > 1
             ? renderCardMediaGallery(item)
@@ -2140,9 +2140,9 @@ function renderMenu() {
     }
   });
 
-  // Убираем card-animate-in после завершения анимации чтобы не блокировать transition
-  document.querySelectorAll('.food-card.card-animate-in').forEach(card => {
-    card.addEventListener('animationend', () => card.classList.remove('card-animate-in'), { once: true });
+  // Убираем card-animate-in с wrapper после анимации чтобы drum scroll работал чисто
+  document.querySelectorAll('.card-drum-wrap.card-animate-in').forEach(wrap => {
+    wrap.addEventListener('animationend', () => wrap.classList.remove('card-animate-in'), { once: true });
   });
 
   // Барабан сразу после рендера
@@ -2241,7 +2241,7 @@ function toggleCard(id, e) {
     setTimeout(() => {
       _cardScrollLock = false;
       watchExpandedCard(card);
-    }, 500);
+    }, 350);
   }
 }
 
@@ -2732,7 +2732,6 @@ function applyDrumScroll() {
     const card = wrap.querySelector('.food-card');
     if (card && card.classList.contains('expanded')) {
       wrap.style.transform = 'scale(1)';
-      wrap.style.opacity = '1';
       return;
     }
     const rect = wrap.getBoundingClientRect();
@@ -2740,10 +2739,9 @@ function applyDrumScroll() {
     const dist = Math.abs(centerY - cardCenterY);
     const maxDist = screenH * 0.55;
     const t = Math.min(dist / maxDist, 1);
-    const scale = 1 - t * 0.09;
-    const opacity = 1 - t * 0.45;
+    const scale = 1 - t * 0.07;
     wrap.style.transform = `scale(${scale.toFixed(4)})`;
-    wrap.style.opacity = opacity.toFixed(4);
+    wrap.style.opacity = '';
   });
 }
 document.getElementById('screen-menu').addEventListener('scroll', () => {
