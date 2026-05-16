@@ -1,4 +1,5 @@
 import os
+import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from contextlib import asynccontextmanager
@@ -36,15 +37,17 @@ def init_db():
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS orders (
                     order_num TEXT PRIMARY KEY,
-                    step INTEGER DEFAULT 1,
+                    step INTEGER DEFAULT 0,
                     name TEXT,
                     phone TEXT,
                     address TEXT,
                     total INTEGER,
                     user_id BIGINT,
+                    items JSONB,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
             """)
+            cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB")
         conn.commit()
 
 
@@ -112,9 +115,10 @@ async def receive_order(order: Order):
     num = order.order_num or "#0000"
     with get_db() as conn:
         with conn.cursor() as cur:
+            items_json = json.dumps([{"name": i.name, "qty": i.qty, "price": i.price} for i in order.items])
             cur.execute(
-                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=0, user_id=%s",
-                (num, 0, order.name, order.phone, order.address, order.total, order.user_id, order.user_id)
+                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id, items) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=0, user_id=%s, items=%s",
+                (num, 0, order.name, order.phone, order.address, order.total, order.user_id, items_json, order.user_id, items_json)
             )
         conn.commit()
 
@@ -141,7 +145,7 @@ async def get_order_history(user_id: int):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT order_num, step, total, created_at FROM orders WHERE user_id=%s ORDER BY created_at DESC LIMIT 50",
+                "SELECT order_num, step, total, items, created_at FROM orders WHERE user_id=%s ORDER BY created_at DESC LIMIT 50",
                 (user_id,)
             )
             rows = cur.fetchall()
@@ -150,6 +154,7 @@ async def get_order_history(user_id: int):
             "num": r["order_num"],
             "step": r["step"],
             "total": r["total"],
+            "items": r["items"] or [],
             "date": r["created_at"].strftime("%d %b %H:%M") if r["created_at"] else ""
         }
         for r in rows
