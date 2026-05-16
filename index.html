@@ -2090,7 +2090,8 @@ function onGalleryTouchEnd(id, e) {
   var dx = endX - _galleryTouchStartX;
   var adx = Math.abs(dx);
   var dy = e.changedTouches[0].clientY - _galleryTouchStartY;
-  if (!_galleryDidSwipe && Math.abs(dy) > 40 && Math.abs(dy) > adx) {
+  // свернуть при свайпе вниз независимо от _galleryDidSwipe
+  if (dy > 40 && dy > adx) {
     var card = document.getElementById('card-' + id);
     if (card && card.classList.contains('expanded')) {
       card.classList.remove('expanded');
@@ -2354,6 +2355,11 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
 }
+
+// свернуть раскрытые карточки при скролле меню
+document.getElementById('screen-menu').addEventListener('scroll', () => {
+  document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
+}, { passive: true });
 
 renderMenu();
 const _savedScreen = sessionStorage.getItem('ichi_screen');
