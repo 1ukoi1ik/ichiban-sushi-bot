@@ -2204,7 +2204,10 @@ function toggleCard(id, e) {
       const cardH = card.offsetHeight;
       const screenH = screen.clientHeight;
       screen.scrollTo({ top: cardTop - (screenH - cardH) / 2, behavior: 'smooth' });
-      setTimeout(() => { _cardScrollLock = false; }, 700);
+      setTimeout(() => {
+        _cardScrollLock = false;
+        watchExpandedCard(card);
+      }, 700);
     }, 150);
   }
 }
@@ -2524,12 +2527,19 @@ function showToast(msg) {
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-// свернуть карточку при скролле, но не сразу после scrollIntoView
 let _cardScrollLock = false;
-document.getElementById('screen-menu').addEventListener('scroll', () => {
-  if (_cardScrollLock) return;
-  document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
-}, { passive: true });
+let _expandedObserver = null;
+
+function watchExpandedCard(card) {
+  if (_expandedObserver) _expandedObserver.disconnect();
+  _expandedObserver = new IntersectionObserver(([entry]) => {
+    if (!_cardScrollLock && entry.intersectionRatio < 0.4) {
+      card.classList.remove('expanded');
+      _expandedObserver.disconnect();
+    }
+  }, { root: document.getElementById('screen-menu'), threshold: 0.4 });
+  _expandedObserver.observe(card);
+}
 
 renderMenu();
 const _savedScreen = sessionStorage.getItem('ichi_screen');
