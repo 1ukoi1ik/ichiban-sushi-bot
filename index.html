@@ -2532,12 +2532,13 @@ let _expandedObserver = null;
 
 function watchExpandedCard(card) {
   if (_expandedObserver) _expandedObserver.disconnect();
+  const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
   _expandedObserver = new IntersectionObserver(([entry]) => {
     if (!_cardScrollLock && entry.intersectionRatio < 0.4) {
       card.classList.remove('expanded');
       _expandedObserver.disconnect();
     }
-  }, { root: document.getElementById('screen-menu'), threshold: 0.4 });
+  }, { root: document.getElementById('screen-menu'), rootMargin: `-${navH}px 0px 0px 0px`, threshold: 0.4 });
   _expandedObserver.observe(card);
 }
 
