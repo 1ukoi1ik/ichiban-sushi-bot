@@ -2165,10 +2165,10 @@ function closeCart() {
 }
 
 function renderCartSheet() {
-  const items = Object.values(cart).filter(x=>x.qty>0);
+  const entries = Object.entries(cart).filter(([,v])=>v.qty>0);
   const sum = getCartSum();
-  document.getElementById('sheet-count').textContent = items.length ? `${getCartCount()} позиции` : '';
-  if (!items.length) {
+  document.getElementById('sheet-count').textContent = entries.length ? `${getCartCount()} позиции` : '';
+  if (!entries.length) {
     document.getElementById('cart-body').innerHTML = `
       <div class="empty-cart">
         <span class="empty-icon">🍣</span>
@@ -2176,19 +2176,23 @@ function renderCartSheet() {
         <div class="empty-sub">Добавьте блюда из меню</div>
       </div>`;
   } else {
-    document.getElementById('cart-body').innerHTML = items.map(item=>`
+    document.getElementById('cart-body').innerHTML = entries.map(([id, item])=>{
+      const menuItem = MENU.find(m => m.id === +id);
+      const img = menuItem?.imgs?.[0] || menuItem?.img || '';
+      return `
       <div class="cart-item">
-        <img class="cart-item-img" src="${item.img}" alt="${item.name}">
+        <img class="cart-item-img" src="${img}" alt="${item.name}">
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-price">${(item.price*item.qty).toLocaleString('ru')} ₽</div>
         </div>
         <div class="qty-ctrl">
-          <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+          <button class="qty-btn" onclick="changeQty(${id},-1)">−</button>
           <span class="qty-num">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+          <button class="qty-btn" onclick="changeQty(${id},1)">+</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   document.getElementById('cart-total-sum').textContent = sum.toLocaleString('ru') + ' ₽';
 }
