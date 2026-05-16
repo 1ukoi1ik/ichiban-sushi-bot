@@ -2217,7 +2217,7 @@ function toggleCard(id, e) {
   const card = document.getElementById('card-' + id);
   const wasExpanded = card.classList.contains('expanded');
   document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
-  if (_expandedObserver) { _expandedObserver.disconnect(); _expandedObserver = null; }
+  _expandedCard = null;
   if (!wasExpanded) {
     card.classList.add('expanded');
     _cardScrollLock = true;
@@ -2558,25 +2558,10 @@ function showToast(msg) {
 }
 
 let _cardScrollLock = false;
-let _expandedObserver = null;
+let _expandedCard = null;
 
 function watchExpandedCard(card) {
-  if (_expandedObserver) _expandedObserver.disconnect();
-  const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
-  // rootMargin обрезает видимую зону сверху (хедер) и снизу (80px — кнопка)
-  _expandedObserver = new IntersectionObserver(([entry]) => {
-    if (_cardScrollLock) return;
-    if (entry.intersectionRatio < 0.35) {
-      card.classList.remove('expanded');
-      _expandedObserver.disconnect();
-      _expandedObserver = null;
-    }
-  }, {
-    root: document.getElementById('screen-menu'),
-    rootMargin: `-${navH}px 0px -80px 0px`,
-    threshold: [0, 0.1, 0.2, 0.35, 0.5]
-  });
-  _expandedObserver.observe(card);
+  _expandedCard = card;
 }
 
 renderMenu();
@@ -2732,36 +2717,51 @@ document.addEventListener('click', e => {
   }
 });
 
-// Drum scroll — барабан без перспективы, transform пишем на wrapper
+// Drum scroll — барабанный эффект, transform пишем на wrapper (без CSS transition)
 let _drumRaf = null;
 function applyDrumScroll() {
   const screen = document.getElementById('screen-menu');
   if (!screen) return;
-  const screenRect = screen.getBoundingClientRect();
   const screenH = screen.clientHeight;
-  const centerY = screenRect.top + screenH / 2;
+  const centerY = screenH / 2; // screen fixed, top всегда 0
   const wraps = screen.querySelectorAll('.card-drum-wrap');
   wraps.forEach(wrap => {
     const card = wrap.querySelector('.food-card');
     if (card && card.classList.contains('expanded')) {
-      wrap.style.transform = '';
-      wrap.style.opacity = '';
+      wrap.style.transform = 'scale(1)';
+      wrap.style.opacity = '1';
       return;
     }
     const rect = wrap.getBoundingClientRect();
     const cardCenterY = rect.top + rect.height / 2;
     const dist = Math.abs(centerY - cardCenterY);
-    const maxDist = screenH * 0.6;
+    const maxDist = screenH * 0.55;
     const t = Math.min(dist / maxDist, 1);
-    const scale = 1 - t * 0.04;
-    const opacity = 1 - t * 0.28;
+    const scale = 1 - t * 0.09;
+    const opacity = 1 - t * 0.45;
     wrap.style.transform = `scale(${scale.toFixed(4)})`;
     wrap.style.opacity = opacity.toFixed(4);
   });
 }
 document.getElementById('screen-menu').addEventListener('scroll', () => {
   if (_drumRaf) return;
-  _drumRaf = requestAnimationFrame(() => { applyDrumScroll(); _drumRaf = null; });
+  _drumRaf = requestAnimationFrame(() => {
+    applyDrumScroll();
+    // Сворачиваем карточку если она ушла за хедер или за низ экрана
+    if (!_cardScrollLock && _expandedCard) {
+      const navH = document.getElementById('sticky-nav')?.offsetHeight || 50;
+      const rect = _expandedCard.getBoundingClientRect();
+      const screenH = window.innerHeight;
+      // карточка ушла за верхний хедер или за нижний край
+      const hiddenTop = rect.bottom < navH + rect.height * 0.35;
+      const hiddenBot = rect.top > screenH - rect.height * 0.35;
+      if (hiddenTop || hiddenBot) {
+        _expandedCard.classList.remove('expanded');
+        _expandedCard = null;
+      }
+    }
+    _drumRaf = null;
+  });
 }, { passive: true });
 </script>
 </body>
