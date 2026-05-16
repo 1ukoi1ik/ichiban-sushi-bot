@@ -167,9 +167,52 @@ async def get_order_status(order_num: str):
     return {"ok": True, "step": row["step"]}
 
 
+MINI_APP_URL = "https://1ukoi1ik.github.io/ichiban-sushi-bot/"
+WELCOME_VIDEO_PATH = "/app/welcome.mp4"
+_welcome_file_id = None
+
+
+async def send_welcome(chat_id: int, client: httpx.AsyncClient):
+    global _welcome_file_id
+    keyboard = {"inline_keyboard": [[{
+        "text": "🍣 Сделать заказ",
+        "web_app": {"url": MINI_APP_URL}
+    }]]}
+    if _welcome_file_id:
+        await client.post(f"{TG_API}/sendAnimation", json={
+            "chat_id": chat_id,
+            "animation": _welcome_file_id,
+            "reply_markup": keyboard
+        })
+        return
+    import os
+    if os.path.exists(WELCOME_VIDEO_PATH):
+        with open(WELCOME_VIDEO_PATH, "rb") as f:
+            resp = await client.post(f"{TG_API}/sendAnimation", data={
+                "chat_id": str(chat_id),
+                "reply_markup": __import__("json").dumps(keyboard)
+            }, files={"animation": ("welcome.mp4", f, "video/mp4")})
+            result = resp.json()
+            if result.get("ok"):
+                _welcome_file_id = result["result"]["animation"]["file_id"]
+    else:
+        await client.post(f"{TG_API}/sendMessage", json={
+            "chat_id": chat_id,
+            "text": "🍣 Добро пожаловать! Нажми кнопку чтобы сделать заказ.",
+            "reply_markup": keyboard
+        })
+
+
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     data = await request.json()
+
+    message = data.get("message")
+    if message and message.get("text") == "/start":
+        async with httpx.AsyncClient() as client:
+            await send_welcome(message["chat"]["id"], client)
+        return {"ok": True}
+
     callback = data.get("callback_query")
     if not callback:
         return {"ok": True}
