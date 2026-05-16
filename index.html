@@ -1444,17 +1444,18 @@ html, body {
   </div>
 
   <div id="active-order-banner" style="background:#1a1a1a; border:1px solid rgba(232,50,26,0.3); border-radius:16px; padding:14px 16px;">
-    <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="toggleBannerExpand()">
       <div>
         <div style="font-size:12px; color:#888; margin-bottom:4px;" id="banner-order-label">Ваш заказ в работе</div>
         <div style="font-size:15px; font-weight:700; color:#F5F5F0;" id="banner-order-num">#0000</div>
       </div>
-      <div style="display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:8px;">
         <div style="text-align:right;">
           <div style="font-size:12px; color:#888; margin-bottom:4px;">Статус</div>
           <div style="font-size:13px; font-weight:700; color:#E8321A;" id="banner-order-status">Готовим 👨‍🍳</div>
         </div>
-        <button id="banner-dismiss-btn" onclick="dismissOrder()" style="display:none; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border:none; color:#aaa; font-size:18px; width:32px; height:32px; border-radius:50%; cursor:pointer; flex-shrink:0;">✕</button>
+        <div id="banner-expand-btn" style="display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border:none; color:#aaa; font-size:14px; width:28px; height:28px; border-radius:50%; flex-shrink:0; transition:transform 0.25s;">▾</div>
+        <button id="banner-dismiss-btn" onclick="event.stopPropagation(); dismissOrder()" style="display:none; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border:none; color:#aaa; font-size:18px; width:32px; height:32px; border-radius:50%; cursor:pointer; flex-shrink:0;">✕</button>
       </div>
     </div>
     <div style="margin-top:10px; display:flex; gap:6px;">
@@ -1463,6 +1464,9 @@ html, body {
       <div class="order-step" id="ostep-2">Готовим</div>
       <div class="order-step" id="ostep-3">В пути</div>
       <div class="order-step" id="ostep-4">Доставлен</div>
+    </div>
+    <div id="banner-items-panel" style="max-height:0; overflow:hidden; transition:max-height 0.3s ease;">
+      <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.07); padding-top:10px;" id="banner-items-list"></div>
     </div>
   </div>
 
@@ -2275,7 +2279,7 @@ async function placeOrder() {
       return;
     }
     showToast('📨 Заказ отправлен! Ожидайте обновления статуса');
-    localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 0 }));
+    localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 0, items, total }));
     document.getElementById('order-number').textContent = orderNum;
     showScreen('screen-success');
     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -2325,11 +2329,41 @@ function showActiveOrderBanner() {
   const dismissBtn = document.getElementById('banner-dismiss-btn');
   dismissBtn.style.display = delivered ? 'flex' : 'none';
   dismissBtn.style.opacity = delivered ? '1' : '0';
+
+  const items = order.items || [];
+  const total = order.total || 0;
+  const list = document.getElementById('banner-items-list');
+  if (items.length) {
+    list.innerHTML = items.map(it =>
+      `<div style="display:flex; justify-content:space-between; font-size:13px; color:#ccc; margin-bottom:6px;">
+        <span>${it.name} × ${it.qty}</span>
+        <span>${(it.price * it.qty).toLocaleString()} ₽</span>
+      </div>`
+    ).join('') +
+    `<div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:#F5F5F0; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.07);">
+      <span>Итого</span><span>${total.toLocaleString()} ₽</span>
+    </div>`;
+  } else {
+    list.innerHTML = '';
+  }
+}
+
+let _bannerExpanded = false;
+function toggleBannerExpand() {
+  const order = JSON.parse(localStorage.getItem('ichi_active_order') || 'null');
+  if (!order || !(order.items || []).length) return;
+  _bannerExpanded = !_bannerExpanded;
+  const panel = document.getElementById('banner-items-panel');
+  const btn = document.getElementById('banner-expand-btn');
+  panel.style.maxHeight = _bannerExpanded ? panel.scrollHeight + 200 + 'px' : '0';
+  btn.style.transform = _bannerExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
 }
 
 function dismissOrder() {
   localStorage.removeItem('ichi_active_order');
   document.getElementById('active-order-banner').classList.remove('visible');
+  _bannerExpanded = false;
+  document.getElementById('banner-items-panel').style.maxHeight = '0';
 }
 
 async function openOrderHistory() {
