@@ -2433,6 +2433,7 @@ function repeatOrder(itemsEncoded) {
   });
   saveCart();
   updateCartUI();
+  renderCartSheet();
   closeOrderHistory();
   showToast('Товары добавлены в корзину');
   setTimeout(() => openCart(), 300);
