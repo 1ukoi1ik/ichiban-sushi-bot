@@ -2235,6 +2235,8 @@ function toggleCard(id, e) {
     const screenCenter = navH + (screenH - navH) / 2;
     const targetScroll = currentScroll + cardCenterInViewport - screenCenter;
 
+    console.log('CENTER', {rectTop: rectBefore.top, cardH: rectBefore.height, screenH, navH, currentScroll, cardCenterInViewport, screenCenter, targetScroll});
+
     card.classList.add('expanded');
     _cardScrollLock = true;
     screen.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
