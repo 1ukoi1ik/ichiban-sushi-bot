@@ -364,7 +364,17 @@ async def suggest_address(q: str):
                 timeout=3.0,
             )
             data = r.json()
-            suggestions = [s["unrestricted_value"] for s in data.get("suggestions", [])]
+            def fmt(s: dict) -> str:
+                d = s.get("data", {})
+                parts = []
+                street = d.get("street_with_type") or d.get("street")
+                house = d.get("house")
+                if street:
+                    parts.append(street)
+                if house:
+                    parts.append(f"д {house}")
+                return ", ".join(parts) if parts else s.get("value", "")
+            suggestions = [fmt(s) for s in data.get("suggestions", []) if fmt(s)]
             return {"suggestions": suggestions}
         except Exception:
             return {"suggestions": []}
