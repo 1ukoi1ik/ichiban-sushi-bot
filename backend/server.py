@@ -176,7 +176,7 @@ async def get_order_status(order_num: str):
     return {"ok": True, "step": row["step"]}
 
 
-MINI_APP_URL = "https://1ukoi1ik.github.io/ichiban-sushi-bot/?v=3"
+MINI_APP_URL = "https://1ukoi1ik.github.io/ichiban-react/"
 WELCOME_VIDEO_URL = "https://github.com/1ukoi1ik/ichiban-sushi-bot/raw/main/welcome.mp4"
 _welcome_file_id = None
 
