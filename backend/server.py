@@ -432,6 +432,21 @@ async def suggest_address(q: str):
             return {"suggestions": []}
 
 
+@app.get("/next-order-num")
+def next_order_num():
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT order_num FROM orders WHERE order_num ~ '^#[0-9]+$' ORDER BY LENGTH(order_num) DESC, order_num DESC LIMIT 1")
+            row = cur.fetchone()
+    if row:
+        try:
+            last = int(row["order_num"][1:])
+            return {"num": f"#{last + 1}"}
+        except ValueError:
+            pass
+    return {"num": "#1001"}
+
+
 @app.get("/health")
 def health():
     return {"ok": True}
