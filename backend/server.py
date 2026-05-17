@@ -439,10 +439,14 @@ async def get_profile(user_id: int):
 @app.get("/profile/by-phone/{phone}")
 async def get_profile_by_phone(phone: str):
     phone = norm_phone(phone)
+    phone_bare = phone.lstrip('+')
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT user_id FROM clients WHERE phone=%s LIMIT 1", (phone,))
+            cur.execute("SELECT user_id FROM clients WHERE phone IN (%s, %s) LIMIT 1", (phone, phone_bare))
             row = cur.fetchone()
+            if not row:
+                cur.execute("SELECT user_id FROM orders WHERE phone IN (%s, %s) AND user_id IS NOT NULL LIMIT 1", (phone, phone_bare))
+                row = cur.fetchone()
     if not row:
         return {"ok": False}
     return {"ok": True, "user_id": row["user_id"]}
