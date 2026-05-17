@@ -440,16 +440,17 @@ async def get_profile(user_id: int):
 async def get_profile_by_phone(phone: str):
     phone = norm_phone(phone)
     phone_bare = phone.lstrip('+')
+    digits = ''.join(filter(str.isdigit, phone))
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT user_id FROM clients WHERE phone IN (%s, %s) LIMIT 1", (phone, phone_bare))
+            cur.execute("SELECT user_id FROM clients WHERE regexp_replace(phone, '[^0-9]', '', 'g') = %s LIMIT 1", (digits,))
             row = cur.fetchone()
             if not row:
-                cur.execute("SELECT user_id FROM orders WHERE phone IN (%s, %s) AND user_id IS NOT NULL LIMIT 1", (phone, phone_bare))
+                cur.execute("SELECT user_id, phone, name FROM orders WHERE regexp_replace(phone, '[^0-9]', '', 'g') = %s ORDER BY created_at DESC LIMIT 1", (digits,))
                 row = cur.fetchone()
     if not row:
         return {"ok": False}
-    return {"ok": True, "user_id": row["user_id"]}
+    return {"ok": True, "user_id": row["user_id"], "phone": row.get("phone"), "name": row.get("name")}
 
 
 @app.get("/suggest/address")
