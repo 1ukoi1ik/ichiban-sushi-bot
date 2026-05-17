@@ -434,17 +434,21 @@ async def suggest_address(q: str):
 
 @app.get("/next-order-num")
 def next_order_num():
+    today = __import__('datetime').date.today().isoformat()
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT order_num FROM orders WHERE order_num ~ '^#[0-9]+$' ORDER BY LENGTH(order_num) DESC, order_num DESC LIMIT 1")
+            cur.execute(
+                "SELECT order_num FROM orders WHERE created_at::date = %s ORDER BY created_at DESC LIMIT 1",
+                (today,)
+            )
             row = cur.fetchone()
     if row:
         try:
-            last = int(row["order_num"][1:])
-            return {"num": f"#{last + 1}"}
+            last = int(row["order_num"].lstrip('#'))
+            return {"num": f"#{last + 1:03d}"}
         except ValueError:
             pass
-    return {"num": "#1001"}
+    return {"num": "#001"}
 
 
 @app.get("/health")
