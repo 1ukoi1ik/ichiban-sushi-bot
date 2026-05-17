@@ -48,6 +48,15 @@ def init_db():
                 )
             """)
             cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB")
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS clients (
+                    user_id BIGINT PRIMARY KEY,
+                    name TEXT,
+                    phone TEXT,
+                    addresses TEXT[] DEFAULT '{}',
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
         conn.commit()
 
 
@@ -256,6 +265,51 @@ async def telegram_webhook(request: Request):
     return {"ok": True}
 
 
+class ClientPhone(BaseModel):
+    user_id: int
+    phone: str
+    name: str = ""
+
+
+class ClientAddress(BaseModel):
+    user_id: int
+    address: str
+
+
+@app.post("/profile/phone")
+async def save_profile_phone(data: ClientPhone):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO clients (user_id, name, phone, updated_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT (user_id) DO UPDATE
+                SET phone = EXCLUDED.phone,
+                    name = CASE WHEN EXCLUDED.name != '' THEN EXCLUDED.name ELSE clients.name END,
+                    updated_at = NOW()
+            """, (data.user_id, data.name, data.phone))
+        conn.commit()
+    return {"ok": True}
+
+
+@app.post("/profile/address")
+async def save_profile_address(data: ClientAddress):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO clients (user_id, addresses, updated_at)
+                VALUES (%s, ARRAY[%s], NOW())
+                ON CONFLICT (user_id) DO UPDATE
+                SET addresses = CASE
+                    WHEN %s = ANY(clients.addresses) THEN clients.addresses
+                    ELSE array_prepend(%s, clients.addresses[0:9])
+                END,
+                updated_at = NOW()
+            """, (data.user_id, data.address, data.address, data.address))
+        conn.commit()
+    return {"ok": True}
+
+
 @app.get("/profile/{user_id}")
 async def get_profile(user_id: int):
     with get_db() as conn:
@@ -268,19 +322,30 @@ async def get_profile(user_id: int):
                 GROUP BY name, phone, address
                 ORDER BY MAX(created_at) DESC LIMIT 1
             """, (user_id,))
-            row = cur.fetchone()
-    if not row:
+            order_row = cur.fetchone()
+            cur.execute("SELECT name, phone, addresses FROM clients WHERE user_id=%s", (user_id,))
+            client_row = cur.fetchone()
+
+    if not order_row and not client_row:
         return {"ok": True, "new_client": True}
-    total = int(row["total_orders"])
+
+    total = int(order_row["total_orders"]) if order_row else 0
     discount = 15 if total >= 20 else 10 if total >= 10 else 5 if total >= 5 else 0
+
+    name = (client_row["name"] if client_row and client_row["name"] else None) or (order_row["name"] if order_row else "") or ""
+    phone = (client_row["phone"] if client_row and client_row["phone"] else None) or (order_row["phone"] if order_row else "") or ""
+    addresses = list(client_row["addresses"]) if client_row and client_row["addresses"] else []
+    if order_row and order_row["address"] and order_row["address"] not in addresses:
+        addresses.append(order_row["address"])
+
     return {
         "ok": True,
         "new_client": False,
-        "name": row["name"],
-        "phone": row["phone"] or "",
-        "address": row["address"] or "",
+        "name": name,
+        "phone": phone,
+        "addresses": addresses,
         "total_orders": total,
-        "month_sum": int(row["month_sum"] or 0),
+        "month_sum": int(order_row["month_sum"] or 0) if order_row else 0,
         "discount": discount,
     }
 
