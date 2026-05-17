@@ -368,10 +368,21 @@ async def save_profile_phone(data: ClientPhone):
 async def delete_profile_address(data: ClientAddress):
     with get_db() as conn:
         with conn.cursor() as cur:
+            # убрать из clients.addresses
             cur.execute("""
                 UPDATE clients SET addresses = array_remove(addresses, %s), updated_at = NOW()
                 WHERE user_id = %s
             """, (data.address, data.user_id))
+            # если адрес из orders — занулить его там тоже
+            cur.execute("""
+                UPDATE orders SET address = NULL
+                WHERE user_id = %s AND address = %s
+            """, (data.user_id, data.address))
+            # убедиться что запись в clients есть (для будущих операций)
+            cur.execute("""
+                INSERT INTO clients (user_id, updated_at) VALUES (%s, NOW())
+                ON CONFLICT (user_id) DO NOTHING
+            """, (data.user_id,))
         conn.commit()
     return {"ok": True}
 
