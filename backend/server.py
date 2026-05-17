@@ -266,6 +266,13 @@ async def telegram_webhook(request: Request):
     return {"ok": True}
 
 
+def norm_phone(p: str) -> str:
+    if not p:
+        return p
+    p = p.strip()
+    return p if p.startswith('+') else f'+{p}'
+
+
 class ClientPhone(BaseModel):
     user_id: int
     phone: str
@@ -285,6 +292,7 @@ class ClientUpdate(BaseModel):
 
 @app.post("/profile/update")
 async def update_profile(data: ClientUpdate):
+    phone = norm_phone(data.phone)
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
@@ -294,9 +302,9 @@ async def update_profile(data: ClientUpdate):
                 SET name = CASE WHEN %s != '' THEN %s ELSE clients.name END,
                     phone = CASE WHEN %s != '' THEN %s ELSE clients.phone END,
                     updated_at = NOW()
-            """, (data.user_id, data.name, data.phone,
+            """, (data.user_id, data.name, phone,
                   data.name, data.name,
-                  data.phone, data.phone))
+                  phone, phone))
         conn.commit()
     return {"ok": True}
 
@@ -320,6 +328,7 @@ async def update_profile_name(data: ClientUpdate):
 
 @app.post("/profile/phone")
 async def save_profile_phone(data: ClientPhone):
+    phone = norm_phone(data.phone)
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
@@ -329,7 +338,7 @@ async def save_profile_phone(data: ClientPhone):
                 SET phone = EXCLUDED.phone,
                     name = CASE WHEN EXCLUDED.name != '' THEN EXCLUDED.name ELSE clients.name END,
                     updated_at = NOW()
-            """, (data.user_id, data.name, data.phone))
+            """, (data.user_id, data.name, phone))
         conn.commit()
     return {"ok": True}
 
@@ -377,7 +386,7 @@ async def get_profile(user_id: int):
     discount = 15 if total >= 20 else 10 if total >= 10 else 5 if total >= 5 else 0
 
     name = (client_row["name"] if client_row and client_row["name"] else None) or (order_row["name"] if order_row else "") or ""
-    phone = (client_row["phone"] if client_row and client_row["phone"] else None) or (order_row["phone"] if order_row else "") or ""
+    phone = norm_phone((client_row["phone"] if client_row and client_row["phone"] else None) or (order_row["phone"] if order_row else "") or "")
     addresses = list(client_row["addresses"]) if client_row and client_row["addresses"] else []
     if order_row and order_row["address"] and order_row["address"] not in addresses:
         addresses.append(order_row["address"])
