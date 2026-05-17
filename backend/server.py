@@ -58,7 +58,28 @@ def init_db():
                     updated_at TIMESTAMP DEFAULT NOW()
                 )
             """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS order_counters (
+                    day DATE PRIMARY KEY,
+                    counter INTEGER DEFAULT 0
+                )
+            """)
         conn.commit()
+
+
+def next_order_num_atomic() -> str:
+    import datetime
+    today = datetime.date.today()
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO order_counters (day, counter) VALUES (%s, 1)
+                ON CONFLICT (day) DO UPDATE SET counter = order_counters.counter + 1
+                RETURNING counter
+            """, (today,))
+            row = cur.fetchone()
+        conn.commit()
+    return f"#{row['counter']:03d}"
 
 
 @asynccontextmanager
@@ -126,13 +147,13 @@ def format_order(order: Order) -> str:
 
 @app.post("/order")
 async def receive_order(order: Order):
-    num = order.order_num or "#0000"
+    num = next_order_num_atomic()
     with get_db() as conn:
         with conn.cursor() as cur:
             items_json = json.dumps([{"name": i.name, "qty": i.qty, "price": i.price} for i in order.items])
             cur.execute(
-                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id, items) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (order_num) DO UPDATE SET step=0, user_id=%s, items=%s",
-                (num, 0, order.name, order.phone, order.address, order.total, order.user_id, items_json, order.user_id, items_json)
+                "INSERT INTO orders (order_num, step, name, phone, address, total, user_id, items) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                (num, 0, order.name, order.phone, order.address, order.total, order.user_id, items_json)
             )
         conn.commit()
 
@@ -151,7 +172,7 @@ async def receive_order(order: Order):
                 "text": f"{CLIENT_MESSAGES[1]}\n\n🧾 Заказ {num} на сумму {order.total:,} ₽"
             })
 
-    return {"ok": True}
+    return {"ok": True, "order_num": num}
 
 
 @app.get("/orders/history/{user_id}")
@@ -433,22 +454,8 @@ async def suggest_address(q: str):
 
 
 @app.get("/next-order-num")
-def next_order_num():
-    today = __import__('datetime').date.today().isoformat()
-    with get_db() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT order_num FROM orders WHERE created_at::date = %s ORDER BY created_at DESC LIMIT 1",
-                (today,)
-            )
-            row = cur.fetchone()
-    if row:
-        try:
-            last = int(row["order_num"].lstrip('#'))
-            return {"num": f"#{last + 1:03d}"}
-        except ValueError:
-            pass
-    return {"num": "#001"}
+def next_order_num_endpoint():
+    return {"num": next_order_num_atomic()}
 
 
 @app.get("/health")
