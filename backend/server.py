@@ -373,10 +373,10 @@ async def delete_profile_address(data: ClientAddress):
                 UPDATE clients SET addresses = array_remove(addresses, %s), updated_at = NOW()
                 WHERE user_id = %s
             """, (data.address, data.user_id))
-            # если адрес из orders — занулить его там тоже
+            # если адрес из orders — занулить его там тоже (trim для надёжности)
             cur.execute("""
                 UPDATE orders SET address = NULL
-                WHERE user_id = %s AND address = %s
+                WHERE user_id = %s AND trim(address) = trim(%s)
             """, (data.user_id, data.address))
             # убедиться что запись в clients есть (для будущих операций)
             cur.execute("""
@@ -420,6 +420,11 @@ async def get_profile(user_id: int):
                 ORDER BY created_at DESC LIMIT 1
             """, (user_id,))
             order_row = cur.fetchone()
+            cur.execute("""
+                SELECT DISTINCT address FROM orders
+                WHERE user_id=%s AND address IS NOT NULL AND address != ''
+            """, (user_id,))
+            order_addresses = [r["address"] for r in cur.fetchall()]
             cur.execute("SELECT name, phone, addresses FROM clients WHERE user_id=%s", (user_id,))
             client_row = cur.fetchone()
 
@@ -432,8 +437,9 @@ async def get_profile(user_id: int):
     name = (client_row["name"] if client_row and client_row["name"] else None) or (order_row["name"] if order_row else "") or ""
     phone = norm_phone((client_row["phone"] if client_row and client_row["phone"] else None) or (order_row["phone"] if order_row else "") or "")
     addresses = list(client_row["addresses"]) if client_row and client_row["addresses"] else []
-    if order_row and order_row["address"] and order_row["address"] not in addresses:
-        addresses.append(order_row["address"])
+    for oa in order_addresses:
+        if oa not in addresses:
+            addresses.append(oa)
 
     return {
         "ok": True,
