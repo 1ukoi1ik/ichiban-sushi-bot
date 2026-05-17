@@ -1,0 +1,371 @@
+{
+  "version": 1,
+  "updatedAt": 1778971936316,
+  "nodeCount": 27,
+  "nodes": {
+    "mem-MEMORY-memory": {
+      "id": "mem-MEMORY-memory",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691637
+    },
+    "mem-feedback_mempalace_alias----": {
+      "id": "mem-feedback_mempalace_alias----",
+      "category": "feedback_mempalace_alias",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691638
+    },
+    "mem-feedback_project_facts_location----": {
+      "id": "mem-feedback_project_facts_location----",
+      "category": "feedback_project_facts_location",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691638
+    },
+    "mem-feedback_propose_first----": {
+      "id": "mem-feedback_propose_first----",
+      "category": "feedback_propose_first",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691638
+    },
+    "mem-feedback_terse_responses----": {
+      "id": "mem-feedback_terse_responses----",
+      "category": "feedback_terse_responses",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691639
+    },
+    "mem-mempalace_troubleshooting----": {
+      "id": "mem-mempalace_troubleshooting----",
+      "category": "mempalace_troubleshooting",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691639
+    },
+    "mem-mempalace_troubleshooting-------------------------------": {
+      "id": "mem-mempalace_troubleshooting-------------------------------",
+      "category": "mempalace_troubleshooting",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691639
+    },
+    "mem-mempalace_troubleshooting--------------------": {
+      "id": "mem-mempalace_troubleshooting--------------------",
+      "category": "mempalace_troubleshooting",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691639
+    },
+    "mem-mempalace_troubleshooting--------------mempalace--------": {
+      "id": "mem-mempalace_troubleshooting--------------mempalace--------",
+      "category": "mempalace_troubleshooting",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691639
+    },
+    "mem-project_qwen_rules----": {
+      "id": "mem-project_qwen_rules----",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules--------------------": {
+      "id": "mem-project_qwen_rules--------------------",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules-------------------------------": {
+      "id": "mem-project_qwen_rules-------------------------------",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules--------": {
+      "id": "mem-project_qwen_rules--------",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules-git": {
+      "id": "mem-project_qwen_rules-git",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules-github": {
+      "id": "mem-project_qwen_rules-github",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules-----------------": {
+      "id": "mem-project_qwen_rules-----------------",
+      "category": "project_qwen_rules",
+      "confidence": 0.8000000000000003,
+      "accessCount": 6,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules--------------juice-puzzle": {
+      "id": "mem-project_qwen_rules--------------juice-puzzle",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules-lsp-vs-grep": {
+      "id": "mem-project_qwen_rules-lsp-vs-grep",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-project_qwen_rules-------------sdk---------------": {
+      "id": "mem-project_qwen_rules-------------sdk---------------",
+      "category": "project_qwen_rules",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-reference_skills_and_mcp----": {
+      "id": "mem-reference_skills_and_mcp----",
+      "category": "reference_skills_and_mcp",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-reference_skills_and_mcp-mcp-motion--motion-react-": {
+      "id": "mem-reference_skills_and_mcp-mcp-motion--motion-react-",
+      "category": "reference_skills_and_mcp",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-reference_skills_and_mcp-pixijs---------------------cla": {
+      "id": "mem-reference_skills_and_mcp-pixijs---------------------cla",
+      "category": "reference_skills_and_mcp",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-reference_skills_and_mcp-------------------": {
+      "id": "mem-reference_skills_and_mcp-------------------",
+      "category": "reference_skills_and_mcp",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691640
+    },
+    "mem-MEMORY-memory-md": {
+      "id": "mem-MEMORY-memory-md",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691641
+    },
+    "mem-feedback_swarm_alias----": {
+      "id": "mem-feedback_swarm_alias----",
+      "category": "feedback_swarm_alias",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691642
+    },
+    "mem-user_language----": {
+      "id": "mem-user_language----",
+      "category": "user_language",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778801691642
+    },
+    "insight-1778803664957-j18t": {
+      "id": "insight-1778803664957-j18t",
+      "category": "insights",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778803664957
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-mempalace_troubleshooting----",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting--------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting--------------------",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting--------------mempalace--------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules----",
+      "targetId": "mem-project_qwen_rules--------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules--------------------",
+      "targetId": "mem-project_qwen_rules-------------------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules-------------------------------",
+      "targetId": "mem-project_qwen_rules--------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules--------",
+      "targetId": "mem-project_qwen_rules-git",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules-git",
+      "targetId": "mem-project_qwen_rules-github",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules-github",
+      "targetId": "mem-project_qwen_rules-----------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules-----------------",
+      "targetId": "mem-project_qwen_rules--------------juice-puzzle",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules--------------juice-puzzle",
+      "targetId": "mem-project_qwen_rules--------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules--------------------",
+      "targetId": "mem-project_qwen_rules-lsp-vs-grep",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_qwen_rules-lsp-vs-grep",
+      "targetId": "mem-project_qwen_rules-------------sdk---------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-reference_skills_and_mcp----",
+      "targetId": "mem-reference_skills_and_mcp-mcp-motion--motion-react-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-reference_skills_and_mcp-mcp-motion--motion-react-",
+      "targetId": "mem-reference_skills_and_mcp-pixijs---------------------cla",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-reference_skills_and_mcp-pixijs---------------------cla",
+      "targetId": "mem-reference_skills_and_mcp-------------------",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting----",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "similar",
+      "weight": 0.3387096774193548
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "similar",
+      "weight": 0.375
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting--------------------",
+      "type": "similar",
+      "weight": 0.3090909090909091
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting-------------------------------",
+      "targetId": "mem-mempalace_troubleshooting--------------mempalace--------",
+      "type": "similar",
+      "weight": 0.35135135135135137
+    },
+    {
+      "sourceId": "mem-mempalace_troubleshooting--------------------",
+      "targetId": "mem-mempalace_troubleshooting-------------------------------",
+      "type": "similar",
+      "weight": 0.34375
+    }
+  ],
+  "pageRanks": {
+    "mem-MEMORY-memory": 0.013694506512979805,
+    "mem-feedback_mempalace_alias----": 0.013694506512979805,
+    "mem-feedback_project_facts_location----": 0.013694506512979805,
+    "mem-feedback_propose_first----": 0.013694506512979805,
+    "mem-feedback_terse_responses----": 0.013694506512979805,
+    "mem-mempalace_troubleshooting----": 0.013694506512979805,
+    "mem-mempalace_troubleshooting-------------------------------": 0.08613226344717667,
+    "mem-mempalace_troubleshooting--------------------": 0.03461241089567474,
+    "mem-mempalace_troubleshooting--------------mempalace--------": 0.03461241089567474,
+    "mem-project_qwen_rules----": 0.013694506512979805,
+    "mem-project_qwen_rules--------------------": 0.0877299314692298,
+    "mem-project_qwen_rules-------------------------------": 0.0509834541315125,
+    "mem-project_qwen_rules--------": 0.05702386284496339,
+    "mem-project_qwen_rules-git": 0.062170088626455886,
+    "mem-project_qwen_rules-github": 0.0665373079841009,
+    "mem-project_qwen_rules-----------------": 0.07024856811929922,
+    "mem-project_qwen_rules--------------juice-puzzle": 0.07340563894207164,
+    "mem-project_qwen_rules-lsp-vs-grep": 0.0509834541315125,
+    "mem-project_qwen_rules-------------sdk---------------": 0.05702386284496339,
+    "mem-reference_skills_and_mcp----": 0.013694506512979805,
+    "mem-reference_skills_and_mcp-mcp-motion--motion-react-": 0.025334764370134776,
+    "mem-reference_skills_and_mcp-pixijs---------------------cla": 0.035228915228509586,
+    "mem-reference_skills_and_mcp-------------------": 0.04363898791296262,
+    "mem-MEMORY-memory-md": 0.013694506512979805,
+    "mem-feedback_swarm_alias----": 0.013694506512979805,
+    "mem-user_language----": 0.013694506512979805,
+    "insight-1778803664957-j18t": 0.013694506512979805
+  }
+}

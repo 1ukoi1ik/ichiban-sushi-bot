@@ -1,0 +1,2459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ichiban Sushi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080808;
+  --surface: #111111;
+  --card: #161616;
+  --card-hover: #1e1e1e;
+  --border: #242424;
+  --border-light: #2e2e2e;
+  --red: #E8321A;
+  --red-glow: rgba(232,50,26,0.35);
+  --orange: #FF6A1A;
+  --amber: #FFB020;
+  --text: #F5F5F0;
+  --sub: #888888;
+  --sub2: #555555;
+  --green: #34C759;
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════ SCREEN SYSTEM ══════════ */
+.screen {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.4s ease;
+  will-change: transform, opacity;
+  padding-bottom: 110px;
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+.screen.slide-left { transform: translateX(-25%); opacity: 0; pointer-events: none; }
+
+/* ══════════ HERO HEADER ══════════ */
+.hero {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&q=85') center/cover no-repeat;
+  transform: scale(1.05);
+  transition: transform 8s ease;
+}
+.hero-bg.loaded { animation: slow-zoom 12s ease infinite alternate; }
+@keyframes slow-zoom {
+  from { transform: scale(1.05); }
+  to { transform: scale(1.12); }
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(8,8,8,0.3) 0%,
+    rgba(8,8,8,0.1) 40%,
+    rgba(8,8,8,0.85) 80%,
+    rgba(8,8,8,1) 100%
+  );
+}
+.hero-content {
+  position: absolute;
+  inset: 0;
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+}
+.hero-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.restaurant-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(8,8,8,0.5);
+  border: 1px solid rgba(52,199,89,0.4);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--green);
+  backdrop-filter: blur(8px);
+}
+.restaurant-badge.closed {
+  border-color: rgba(136,136,136,0.3);
+  color: var(--sub);
+}
+.about-trigger {
+  margin-left: auto;
+}
+.about-dropdown {
+  left: unset !important;
+  right: 0;
+  min-width: 240px;
+  transform-origin: top right;
+}
+.about-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sub);
+  border-radius: 10px;
+  line-height: 1.4;
+}
+.about-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+.restaurant-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+.restaurant-name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5A87A 60%, var(--orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sub);
+  backdrop-filter: blur(4px);
+}
+.chip.highlight { color: var(--amber); border-color: rgba(255,176,32,0.3); background: rgba(255,176,32,0.08); }
+
+/* ══════════ STICKY NAV ══════════ */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,8,8,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Category dropdown button */
+.cat-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 22px;
+  border: 1.5px solid var(--border-light);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.cat-trigger.open { border-color: var(--red); background: rgba(232,50,26,0.08); }
+.cat-trigger-arrow {
+  font-size: 10px;
+  transition: transform 0.25s;
+  opacity: 0.6;
+}
+.cat-trigger.open .cat-trigger-arrow { transform: rotate(180deg); }
+
+.cat-active-label {
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Dropdown */
+.cat-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  padding: 8px;
+  z-index: 200;
+  min-width: 200px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.3);
+  transform-origin: top left;
+  transform: scale(0.92) translateY(-8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease;
+}
+.cat-dropdown.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+.cat-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sub);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.cat-option:hover { background: var(--card); color: var(--text); }
+.cat-option.active {
+  background: rgba(232,50,26,0.1);
+  color: var(--text);
+}
+.cat-option.active .cat-opt-dot {
+  background: linear-gradient(135deg, var(--red), var(--orange));
+}
+.cat-opt-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-light);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+/* Search / active indicator next to button */
+.cat-divider-v { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+.cat-active-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 22px;
+  background: rgba(232,50,26,0.1);
+  border: 1.5px solid rgba(232,50,26,0.3);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--orange);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* legacy — keep empty for compat */
+.categories { display: none; }
+.cat-btn { display: none; }
+
+/* ══════════ SECTION ══════════ */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 18px 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
+}
+
+/* ══════════ FOOD CARDS ══════════ */
+.cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.food-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  animation: card-in 0.4s ease both;
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.food-card:active { transform: scale(0.985); }
+.food-card.expanded {
+  border-color: rgba(232,50,26,0.35);
+  box-shadow: 0 0 0 1px rgba(232,50,26,0.15), 0 12px 40px rgba(0,0,0,0.5);
+}
+.food-card.expanded .card-gallery-wrap,
+.food-card.expanded .card-image-wrap {
+  height: 280px;
+}
+.food-card.expanded .card-gallery,
+.food-card.expanded .card-gallery-slide img {
+  height: 280px;
+}
+.card-gallery-wrap,
+.card-image-wrap {
+  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-gallery,
+.card-gallery-slide img {
+  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* IMAGE */
+.card-image-wrap {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+}
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
+  opacity: 0;
+}
+.card-image.loaded { opacity: 1; }
+.food-card.expanded .card-image { transform: scale(1.06); }
+
+/* Shimmer */
+.shimmer-layer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255,255,255,0.04) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+  transition: opacity 0.5s;
+  z-index: 2;
+}
+.card-image-wrap.img-loaded .shimmer-layer { opacity: 0; pointer-events: none; }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Gradient overlay */
+.card-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 30%,
+    rgba(22,22,22,0.6) 70%,
+    rgba(22,22,22,0.95) 100%
+  );
+  z-index: 3;
+}
+
+/* Calories badge */
+.card-cal-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(8,8,8,0.75);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sub);
+  backdrop-filter: blur(8px);
+  z-index: 4;
+}
+
+/* Галерея фото */
+.card-gallery-wrap {
+  position: relative;
+  height: 190px;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+}
+.card-gallery {
+  display: flex;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-snap-stop: always;
+  scrollbar-width: none;
+  height: 190px;
+  gap: 0;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.card-gallery::-webkit-scrollbar { display: none; }
+.card-gallery-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+}
+.card-gallery-slide img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.card-gallery-slide img.loaded { opacity: 1; }
+.card-gallery-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 5;
+}
+.card-gallery-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  transition: background 0.2s, transform 0.2s;
+}
+.card-gallery-dot.active {
+  background: #fff;
+  transform: scale(1.3);
+}
+
+/* CARD BODY */
+.card-body {
+  padding: 12px 14px 14px;
+  background: var(--card);
+  border-radius: 0 0 20px 20px;
+  position: relative;
+}
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.card-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+  flex: 1;
+}
+.card-price-wrap { flex-shrink: 0; text-align: right; }
+.card-price {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+.card-weight { font-size: 10px; color: var(--sub2); margin-top: 1px; }
+
+/* Expand desc */
+.card-desc-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.35s ease,
+              padding 0.35s ease;
+  opacity: 0;
+  padding-top: 0;
+}
+.food-card.expanded .card-desc-wrap {
+  max-height: 200px;
+  opacity: 1;
+  padding-top: 10px;
+}
+.card-desc {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+.card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--sub);
+  letter-spacing: 0.3px;
+}
+.tag.hot { color: var(--red); border-color: rgba(232,50,26,0.3); background: rgba(232,50,26,0.06); }
+.tag.new { color: var(--green); border-color: rgba(52,199,89,0.3); background: rgba(52,199,89,0.06); }
+.tag.hit { color: var(--amber); border-color: rgba(255,176,32,0.3); background: rgba(255,176,32,0.06); }
+
+/* ADD BUTTON */
+.add-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.1s;
+  box-shadow: 0 4px 20px var(--red-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 0.2px;
+}
+.add-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.add-btn:hover::after { opacity: 1; }
+.add-btn:active { transform: scale(0.97); box-shadow: 0 2px 10px var(--red-glow); }
+.add-btn.in-cart {
+  background: var(--card-hover);
+  border: 1.5px solid var(--border-light);
+  box-shadow: none;
+  color: var(--text);
+}
+.add-btn .cart-icon { font-size: 16px; }
+
+/* ══════════ CART FAB ══════════ */
+.cart-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  color: var(--sub);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  z-index: 200;
+  position: fixed;
+}
+.cart-fab.has-items {
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 24px var(--red-glow);
+}
+.cart-fab:active { transform: scale(0.92); }
+
+.fab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--sub2);
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  border: 2px solid var(--bg);
+  transition: background 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cart-fab.has-items .fab-badge {
+  background: #fff;
+  color: var(--red);
+}
+.fab-badge.bump { animation: badge-bump 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes badge-bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.6); }
+  100% { transform: scale(1); }
+}
+/* скрытые элементы старого FAB */
+.fab-left { display: none; }
+.fab-sum { display: none; }
+
+/* ══════════ BOTTOM SHEET ══════════ */
+/* overlay не нужен — корзина теперь полноэкранная */
+.sheet-overlay { display: none; }
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 400;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sheet.open { transform: translateX(0); }
+.sheet-handle { display: none; }
+.sheet-header {
+  padding: 16px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,8,8,0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.sheet-back-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.sheet-back-btn:active { background: var(--card-hover); }
+.sheet-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  flex: 1;
+}
+.sheet-count { font-size: 13px; color: var(--sub); font-weight: 600; }
+.sheet-body { overflow-y: auto; flex: 1; padding: 8px 16px; -webkit-overflow-scrolling: touch; }
+.sheet-footer { padding: 16px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg); }
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  animation: item-in 0.25s ease both;
+}
+@keyframes item-in {
+  from { opacity: 0; transform: translateX(-8px); filter: blur(3px); }
+  to { opacity: 1; transform: translateX(0); filter: blur(0); }
+}
+.cart-item:last-child { border-bottom: none; }
+.cart-item-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-name {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.cart-item-price { font-size: 13px; color: var(--orange); font-weight: 800; }
+
+.qty-ctrl { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-light);
+  background: var(--card);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s;
+  font-weight: 700;
+}
+.qty-btn:active { background: var(--red); border-color: var(--red); transform: scale(0.9); }
+.qty-num {
+  font-size: 15px;
+  font-weight: 800;
+  min-width: 22px;
+  text-align: center;
+  font-family: var(--font-display);
+}
+
+.cart-summary {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+.cart-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--sub);
+}
+.cart-summary-row:last-child { margin-bottom: 0; }
+.cart-summary-divider { height: 1px; background: var(--border); margin: 10px 0; }
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cart-total-label { font-size: 16px; font-weight: 700; }
+.cart-total-sum {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════ PRIMARY BUTTON ══════════ */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 24px var(--red-glow);
+  transition: transform 0.1s, box-shadow 0.2s;
+  letter-spacing: 0.2px;
+}
+.btn-primary:active { transform: scale(0.98); }
+
+/* ══════════ PAGE HEADER ══════════ */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(8,8,8,0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 10;
+}
+.back-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.back-btn:active { background: var(--card-hover); }
+.page-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* ══════════ CHECKOUT FORM ══════════ */
+.form-section { padding: 20px 16px; }
+.form-group { margin-bottom: 18px; }
+.form-label {
+  font-size: 11px;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 13px 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(232,50,26,0.1);
+}
+.form-input::placeholder { color: var(--sub2); }
+
+.address-toggle-btn {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.address-toggle-btn.filled {
+  border-color: rgba(52,199,89,0.5);
+  color: var(--green);
+  background: rgba(52,199,89,0.06);
+}
+.address-fields-expanded {
+  margin-top: 10px;
+}
+
+
+.address-suggestions {
+  position: absolute;
+  left: 0; right: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  z-index: 100;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+.address-suggestion-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  border-bottom: 1px solid #222;
+}
+.address-suggestion-item:last-child { border-bottom: none; }
+.address-suggestion-item:active { background: #2a2a2a; }
+
+
+.pay-options { display: flex; gap: 10px; }
+.pay-opt {
+  flex: 1;
+  padding: 13px 10px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--sub);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+.pay-opt .pay-icon { display: block; font-size: 20px; margin-bottom: 4px; }
+.pay-opt.active {
+  border-color: rgba(232,50,26,0.5);
+  color: var(--text);
+  background: rgba(232,50,26,0.08);
+  box-shadow: 0 0 0 1px rgba(232,50,26,0.15);
+}
+
+.order-summary {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+.os-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--sub);
+  margin-bottom: 8px;
+}
+.os-row:last-child { margin-bottom: 0; }
+.os-divider { height: 1px; background: var(--border); margin: 10px 0; }
+.os-total { display: flex; justify-content: space-between; align-items: center; }
+.os-total-label { font-size: 17px; font-weight: 800; }
+.os-total-val {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════ SUCCESS ══════════ */
+.success-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 24px;
+  text-align: center;
+}
+.success-lottie {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  margin-bottom: 28px;
+  box-shadow: 0 0 0 0 var(--red-glow);
+  animation: success-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             success-glow 2s 0.6s ease infinite;
+}
+@keyframes success-pop {
+  from { transform: scale(0.85) rotate(-10deg); opacity: 0; filter: blur(6px); }
+  to { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+}
+@keyframes success-glow {
+  0%, 100% { box-shadow: 0 0 30px var(--red-glow); }
+  50% { box-shadow: 0 0 60px var(--red-glow), 0 0 100px rgba(232,50,26,0.1); }
+}
+.success-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+  animation: fade-up 0.4s 0.3s ease both;
+}
+.success-sub {
+  font-size: 15px;
+  color: var(--sub);
+  animation: fade-up 0.4s 0.4s ease both;
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.success-order-num {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 16px 0;
+  animation: fade-up 0.4s 0.5s ease both;
+}
+.success-eta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px 32px;
+  margin: 8px 0 28px;
+  width: 100%;
+  animation: fade-up 0.4s 0.6s ease both;
+}
+.success-eta-label { font-size: 12px; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px; }
+.success-eta-time {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--text);
+}
+.success-steps {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 32px;
+  animation: fade-up 0.4s 0.7s ease both;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--sub);
+  font-weight: 600;
+}
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.step.done .step-dot { background: rgba(52,199,89,0.15); border-color: var(--green); }
+.step-line { width: 28px; height: 2px; background: var(--border); margin-top: 13px; }
+.order-step {
+  flex: 1;
+  text-align: center;
+  padding: 5px 4px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--sub);
+  border: 1px solid var(--border);
+}
+.order-step.done {
+  background: rgba(52,199,89,0.1);
+  border-color: rgba(52,199,89,0.3);
+  color: var(--green);
+}
+.order-step.active {
+  background: rgba(232,50,26,0.1);
+  border-color: rgba(232,50,26,0.3);
+  color: var(--red);
+}
+
+.btn-secondary {
+  padding: 14px 40px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-light);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  animation: fade-up 0.4s 0.8s ease both;
+}
+.btn-secondary:active { background: var(--card-hover); }
+
+/* ══════════ PARTICLES ══════════ */
+.particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: particle-fly 0.7s cubic-bezier(0.4, 0, 0.8, 1) forwards;
+}
+@keyframes particle-fly {
+  0% { transform: scale(1) translate(0,0); opacity: 1; }
+  100% { transform: scale(0.2) translate(var(--tx), var(--ty)); opacity: 0; }
+}
+
+/* ══════════ EMPTY STATE ══════════ */
+.empty-cart {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--sub);
+}
+.empty-icon { font-size: 52px; margin-bottom: 14px; display: block; }
+.empty-text { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.empty-sub { font-size: 13px; }
+
+/* ══════════ TOAST ══════════ */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  white-space: nowrap;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ══════════ PICKER ══════════ */
+.picker-screen {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 0 24px;
+}
+.picker-header {
+  padding: 0 20px 24px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+.picker-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sub);
+  margin-top: 6px;
+  letter-spacing: 0;
+}
+.picker-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 12px;
+}
+.picker-item:active { background: rgba(255,255,255,0.04); }
+.picker-item-emoji { font-size: 24px; width: 32px; text-align: center; }
+.picker-item-label { flex: 1; }
+.picker-item-arrow { color: var(--sub2); font-size: 18px; }
+
+/* Кнопка Change */
+.change-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 50;
+  background: rgba(8,8,8,0.65);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+/* ══════════ ACTIVE ORDER BANNER ══════════ */
+#active-order-banner {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              transform 0.3s ease,
+              margin 0.3s ease;
+  margin: 0 16px;
+}
+#active-order-banner.visible {
+  max-height: 140px;
+  opacity: 1;
+  transform: translateY(0);
+  margin: 12px 16px 0;
+}
+
+/* ══════════ ADDRESS FIELDS ══════════ */
+.address-fields-expanded {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.28s ease;
+  margin-top: 0;
+}
+.address-fields-expanded.expanded {
+  max-height: 400px;
+  opacity: 1;
+  margin-top: 10px;
+}
+
+/* ══════════ ADDRESS SUGGESTIONS ══════════ */
+.address-suggestions {
+  display: block;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease;
+}
+.address-suggestions.visible {
+  max-height: 200px;
+  opacity: 1;
+}
+
+/* ══════════ PICKER ITEMS STAGGER ══════════ */
+.picker-item {
+  animation: picker-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes picker-in {
+  from { opacity: 0; transform: translateX(-12px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateX(0);     filter: blur(0);   }
+}
+.picker-item:nth-child(1) { animation-delay: 0.05s; }
+.picker-item:nth-child(2) { animation-delay: 0.10s; }
+.picker-item:nth-child(3) { animation-delay: 0.15s; }
+.picker-item:nth-child(4) { animation-delay: 0.20s; }
+.picker-item:nth-child(5) { animation-delay: 0.25s; }
+.picker-item:nth-child(6) { animation-delay: 0.30s; }
+.picker-item:nth-child(7) { animation-delay: 0.35s; }
+
+/* ══════════ FAB BOUNCE ON ADD ══════════ */
+@keyframes fab-bounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  65%  { transform: scale(0.94); }
+  85%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.cart-fab.bounce { animation: fab-bounce 0.42s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* ══════════ ORDER STEP ACTIVE PULSE ══════════ */
+@keyframes step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232,50,26,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(232,50,26,0); }
+}
+.order-step.active {
+  animation: step-pulse 1.8s ease infinite;
+}
+
+/* ══════════ PREFERS-REDUCED-MOTION ══════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN: PICKER ══ -->
+<div id="screen-picker" class="screen">
+  <div class="picker-screen">
+    <div class="picker-header">
+      Выберите демо
+      <div class="picker-sub">Нажмите на кухню чтобы открыть</div>
+    </div>
+    <div class="picker-item" onclick="selectBrand('sushi')">
+      <span class="picker-item-emoji">🍣</span>
+      <span class="picker-item-label">Суши / Роллы</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('pizza')">
+      <span class="picker-item-emoji">🍕</span>
+      <span class="picker-item-label">Пицца</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('burger')">
+      <span class="picker-item-emoji">🍔</span>
+      <span class="picker-item-label">Бургеры</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('shawarma')">
+      <span class="picker-item-emoji">🌯</span>
+      <span class="picker-item-label">Шаурма</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('pasta')">
+      <span class="picker-item-emoji">🍝</span>
+      <span class="picker-item-label">Паста / Итальянская</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('georgian')">
+      <span class="picker-item-emoji">🥩</span>
+      <span class="picker-item-label">Грузинская кухня</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+    <div class="picker-item" onclick="selectBrand('ramen')">
+      <span class="picker-item-emoji">🍜</span>
+      <span class="picker-item-label">Рамен / Азия</span>
+      <span class="picker-item-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: MENU ══ -->
+<div id="screen-menu" class="screen hidden">
+  <div class="hero">
+    <div class="hero-bg" id="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <button class="change-btn" onclick="changeBrand()">← Change</button>
+    <div class="hero-content">
+      <div class="restaurant-name" id="restaurant-name">Ichiban Sushi</div>
+      <div class="hero-status-row">
+        <div class="restaurant-badge" id="open-badge">● Открыто сейчас</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky-nav" id="sticky-nav">
+    <!-- Категории -->
+    <div class="cat-trigger" id="cat-trigger" onclick="toggleCatDropdown()">
+      <span>☰</span>
+      <span class="cat-active-label" id="cat-trigger-label">Категории</span>
+      <span class="cat-trigger-arrow">▼</span>
+      <div class="cat-dropdown" id="cat-dropdown"></div>
+    </div>
+
+    <!-- О нас -->
+    <div class="cat-trigger about-trigger" id="about-trigger" onclick="toggleAboutDropdown()">
+      <span>ℹ️</span>
+      <span class="cat-active-label">О нас</span>
+      <span class="cat-trigger-arrow">▼</span>
+      <div class="cat-dropdown about-dropdown" id="about-dropdown">
+        <div class="about-item">⭐ 4.9 · 2 400 отзывов</div>
+        <div class="about-item">🚚 Бесплатная доставка от 500 ₽</div>
+        <div class="about-item">🕐 Работаем с 10:00 до 22:00</div>
+        <div class="about-item">📍 Доставка по всему городу</div>
+        <div class="about-item">📞 +7 (999) 123-45-67</div>
+        <div class="about-item">💬 Среднее время доставки 35–45 мин</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="active-order-banner" style="background:#1a1a1a; border:1px solid rgba(232,50,26,0.3); border-radius:16px; padding:14px 16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:4px;" id="banner-order-label">Ваш заказ в работе</div>
+        <div style="font-size:15px; font-weight:700; color:#F5F5F0;" id="banner-order-num">#0000</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="text-align:right;">
+          <div style="font-size:12px; color:#888; margin-bottom:4px;">Статус</div>
+          <div style="font-size:13px; font-weight:700; color:#E8321A;" id="banner-order-status">Готовим 👨‍🍳</div>
+        </div>
+        <button id="banner-dismiss-btn" onclick="dismissOrder()" style="display:none; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border:none; color:#aaa; font-size:18px; width:32px; height:32px; border-radius:50%; cursor:pointer; flex-shrink:0;">✕</button>
+      </div>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:6px;">
+      <div class="order-step" id="ostep-1">Принят ✓</div>
+      <div class="order-step" id="ostep-2">Готовим</div>
+      <div class="order-step" id="ostep-3">В пути</div>
+      <div class="order-step" id="ostep-4">Доставлен</div>
+    </div>
+  </div>
+
+  <div id="menu-content"></div>
+
+</div>
+
+<!-- ══ SCREEN: CHECKOUT ══ -->
+<div id="screen-checkout" class="screen hidden">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack('screen-menu')">‹</button>
+    <div class="page-title">Оформление заказа</div>
+  </div>
+  <div class="form-section">
+    <div class="form-group">
+      <label class="form-label">Ваше имя</label>
+      <input type="text" class="form-input" id="input-name" placeholder="Иван Иванов">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Номер телефона</label>
+      <input type="tel" class="form-input" id="input-phone" placeholder="+7 (000) 000-00-00">
+    </div>
+    <div class="form-group" id="address-group">
+      <label class="form-label">Адрес доставки</label>
+      <button class="address-toggle-btn" id="address-toggle-btn" onclick="toggleAddressFields()">
+        📍 Указать адрес
+      </button>
+      <div id="address-fields" class="address-fields-expanded">
+        <div style="position:relative">
+          <input type="text" class="form-input" id="input-street" placeholder="Улица *" autocomplete="off" style="margin-bottom:8px">
+          <div id="address-suggestions" class="address-suggestions"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" class="form-input" id="input-house" placeholder="Дом *" style="flex:1">
+          <input type="text" class="form-input" id="input-building" placeholder="Корпус" style="flex:1">
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" class="form-input" id="input-flat" placeholder="Квартира" style="flex:1">
+          <input type="text" class="form-input" id="input-floor" placeholder="Этаж" style="flex:1">
+        </div>
+      </div>
+      <input type="hidden" id="input-address">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Комментарий</label>
+      <input type="text" class="form-input" id="input-comment" placeholder="Не звонить в дверь, оставить у двери...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Способ оплаты</label>
+      <div class="pay-options">
+        <div class="pay-opt active" id="pay-cash" onclick="selectPay('cash')">
+          <span class="pay-icon">💵</span>Картой курьеру
+        </div>
+        <div class="pay-opt" id="pay-online" onclick="selectPay('online')">
+          <span class="pay-icon">💳</span>Онлайн
+        </div>
+        <div class="pay-opt" id="pay-tg" onclick="selectPay('tg')">
+          <span class="pay-icon">✈️</span>Telegram Pay
+        </div>
+      </div>
+    </div>
+
+    <div class="order-summary">
+      <div class="os-row"><span>Позиций</span><span id="co-count">0</span></div>
+      <div class="os-row"><span>Сумма</span><span id="co-items-sum">0 ₽</span></div>
+      <div class="os-row"><span>Доставка</span><span style="color:var(--green)">Бесплатно</span></div>
+      <div class="os-divider"></div>
+      <div class="os-total">
+        <span class="os-total-label">Итого</span>
+        <span class="os-total-val" id="co-total">0 ₽</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="placeOrder()">Оформить заказ →</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: SUCCESS ══ -->
+<div id="screen-success" class="screen hidden">
+  <div class="success-screen">
+    <div class="success-lottie">✓</div>
+    <div class="success-title">Заказ принят!</div>
+    <div class="success-sub">Номер вашего заказа</div>
+    <div class="success-order-num" id="order-number">#0000</div>
+    <div class="success-eta-card">
+      <div class="success-eta-label">Ожидаемое время</div>
+      <div class="success-eta-time">~40 мин</div>
+    </div>
+    <div class="success-sub" style="margin-bottom:24px">Статус заказа можно посмотреть на главном экране</div>
+    <button class="btn-secondary" onclick="resetAndGoMenu()">Вернуться в меню</button>
+  </div>
+</div>
+
+<!-- ══ CART SHEET ══ -->
+<button class="cart-fab" id="cart-fab" onclick="openCart()">
+  🛒
+  <span class="fab-badge" id="cart-badge">0</span>
+</button>
+
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeCart()"></div>
+<div class="sheet" id="cart-sheet">
+  <div class="sheet-header">
+    <button class="sheet-back-btn" onclick="closeCart()">‹</button>
+    <div class="sheet-title">Корзина</div>
+    <div class="sheet-count" id="sheet-count"></div>
+  </div>
+  <div class="sheet-body" id="cart-body"></div>
+  <div class="sheet-footer">
+    <div class="cart-summary">
+      <div class="cart-summary-row"><span>Доставка</span><span style="color:var(--green)">Бесплатно</span></div>
+      <div class="cart-summary-divider"></div>
+      <div class="cart-total-row">
+        <span class="cart-total-label">Итого</span>
+        <span class="cart-total-sum" id="cart-total-sum">0 ₽</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="goToCheckout()">Оформить заказ →</button>
+    <button onclick="openOrderHistory()" style="width:100%; margin-top:10px; background:none; border:1px solid var(--border); border-radius:12px; color:#aaa; font-size:14px; padding:11px; cursor:pointer;">🕐 Прошлые заказы</button>
+  </div>
+</div>
+
+<!-- Order History Sheet -->
+<div class="sheet" id="history-sheet">
+  <div class="sheet-header">
+    <button class="sheet-back-btn" onclick="closeOrderHistory()">‹</button>
+    <div class="sheet-title">Прошлые заказы</div>
+    <div></div>
+  </div>
+  <div class="sheet-body" id="history-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const OPEN_FROM = 10, OPEN_TO = 22;
+
+function isOpen() {
+  const h = new Date().getHours();
+  return h >= OPEN_FROM && h < OPEN_TO;
+}
+
+function updateOpenStatus() {
+  const badge = document.getElementById('open-badge');
+  if (isOpen()) {
+    badge.textContent = '● Открыто сейчас';
+    badge.classList.remove('closed');
+  } else {
+    badge.textContent = `● Закрыто · откроем в ${OPEN_FROM}:00`;
+    badge.classList.add('closed');
+  }
+}
+
+setInterval(updateOpenStatus, 60000);
+
+// Hero image
+const heroBg = document.getElementById('hero-bg');
+const hImg = new Image();
+hImg.onload = () => { heroBg.style.backgroundImage = `url('${hImg.src}')`; heroBg.classList.add('loaded'); };
+hImg.src = 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&q=85';
+
+const BRANDS = {
+  sushi: {
+    name: 'Ichiban Sushi', red: '#E8321A', orange: '#FF6A1A',
+    hero: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'rolls',label:'🌀 Роллы'},{key:'hot',label:'🔥 Горячие'},
+      {key:'sets',label:'📦 Сеты'},{key:'soups',label:'🍜 Супы'},{key:'salads',label:'🥗 Салаты'},
+      {key:'desserts',label:'🍡 Десерты'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'rolls', name:'Филадельфия', price:490, weight:'240г', desc:'Нежный норвежский лосось холодного копчения, бархатистый сыр Philadelphia и хрустящий огурец.', tags:['hit'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=85', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/017eb866-5a08-5b49-984d-aedd45bd7035.jpg','https://yum-yum.md/_next/image?url=https%3A%2F%2Fpub-d6b26f68cf8843dc9536f330d128d249.r2.dev%2F1766774041869-roll-philadelphia-classic.webp&w=1536&q=75','https://sushimore.akovalsky.ru/assets/content/products/380/small/filadelfiya-s-krevetkoy-dscf2479.webp','https://nagano66.ru/image/cache/catalog/NewRolli2/Filasogurcom-1000x560.jpg'] },
+      { id:2, cat:'rolls', name:'Калифорния', price:380, weight:'220г', desc:'Сурими из натурального краба, авокадо, огурец, тобико. Классика японской кухни.', tags:['hit'], cal:'280 ккал', img:'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&q=85', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/aa58e02b-4e15-5515-925c-117209964586.jpg','https://sushimore.akovalsky.ru/assets/content/products/468/small/kaliforniya-s-lososem-dscf2462.webp','https://yum-yum.md/_next/image?url=https%3A%2F%2Fpub-d6b26f68cf8843dc9536f330d128d249.r2.dev%2F1766773999639-roll-california-classic.webp&w=1536&q=75','https://nagano66.ru/image/cache/catalog/NewRolli2/Kaliforniya-1000x560.jpg'] },
+      { id:3, cat:'rolls', name:'Дракон', price:570, weight:'260г', desc:'Хрустящая креветка темпура внутри, слайсы авокадо снаружи. Полит острым майонезом.', tags:['hot','hit'], cal:'410 ккал', img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/cd0407b9-c308-5003-83c4-f7192b6dcbeb.png','https://s3.smartofood.ru/aztec_cafe_com/menu/cf5b917b-5dc1-5deb-b6a3-3de087c7e596.jpg','https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=85','https://images.unsplash.com/photo-1505253304499-671c55fb57fe?w=600&q=85'] },
+      { id:4, cat:'rolls', name:'Радуга', price:640, weight:'280г', desc:'Семь видов рыбы: лосось, тунец, желтохвост, лакедра, угорь, морской окунь и икура.', tags:['new'], cal:'360 ккал', img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=85', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/27ede95a-d631-5142-a66c-4e7bdf166deb.jpg','https://s3.smartofood.ru/aztec_cafe_com/menu/b477e5f9-8ae6-59c5-a614-91bc8c7adc60.jpg','https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&q=85','https://images.unsplash.com/photo-1576577445504-6af96477db52?w=600&q=85'] },
+      { id:5, cat:'rolls', name:'Эби темпура', price:450, weight:'250г', desc:'Тигровая креветка в хрустящем кляре темпура, огурец, икра тобико, соус спайси.', tags:['hot'], cal:'390 ккал', img:'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=85', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/729e3aaf-ca3e-50a1-83e8-3e6312465181.jpg','https://s3.smartofood.ru/aztec_cafe_com/menu/8d8cb12c-afa3-51a2-a1b9-9f04bc95d481.jpg','https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=85','https://images.unsplash.com/photo-1505253304499-671c55fb57fe?w=600&q=85'] },
+      { id:6, cat:'rolls', name:'Тунец Спайси', price:520, weight:'240г', desc:'Нарезанный тунец с соусом спайси, перец чили, кунжут. Для любителей острого.', tags:['hot','new'], cal:'300 ккал', img:'https://images.unsplash.com/photo-1617196035154-1e7e6e28b0db?w=600&q=85', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/b57bd0a2-93ff-57dd-b015-8f8f687997f2.jpg','https://s3.smartofood.ru/aztec_cafe_com/menu/02d90816-f96e-5411-acee-4771b0505139.jpg','https://images.unsplash.com/photo-1560717845-968823efbee1?w=600&q=85','https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=85'] },
+      { id:7, cat:'hot', name:'Жареные с лососем', price:520, weight:'280г', desc:'Классические роллы обжаренные в темпурном кляре до золотистой корочки.', tags:['hit','hot'], cal:'450 ккал', img:'https://s3.smartofood.ru/aztec_cafe_com/menu/b6c2e235-8441-5048-a170-775f897c4308.png', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/b6c2e235-8441-5048-a170-775f897c4308.png','https://s3.smartofood.ru/aztec_cafe_com/menu/926f2a17-abef-54d1-b821-96243374b1ff.jpg'] },
+      { id:8, cat:'hot', name:'Запечённый с сыром', price:490, weight:'260г', desc:'Роллы с крабом запечены со сливочным сыром и икрой масаго.', tags:['hit'], cal:'480 ккал', img:'https://yum-yum.md/_next/image?url=https%3A%2F%2Fpub-d6b26f68cf8843dc9536f330d128d249.r2.dev%2F1766763563518-roll-ebi-tempura.webp&w=1536&q=95', imgs:['https://yum-yum.md/_next/image?url=https%3A%2F%2Fpub-d6b26f68cf8843dc9536f330d128d249.r2.dev%2F1766763563518-roll-ebi-tempura.webp&w=1536&q=95','https://yum-yum.md/_next/image?url=https%3A%2F%2Fpub-d6b26f68cf8843dc9536f330d128d249.r2.dev%2F1766763388033-roll-sake-tempura.webp&w=1536&q=95'] },
+      { id:9, cat:'sets', name:'Сет «Для двоих»', price:990, weight:'480г', desc:'32 ролла: Филадельфия ×8, Калифорния ×8, Дракон ×8, Темпура ×8.', tags:['hit'], cal:'1100 ккал', img:'https://s3.smartofood.ru/aztec_cafe_com/menu/b551258d-30c0-5a20-9491-6002331df836.jpg', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/b551258d-30c0-5a20-9491-6002331df836.jpg','https://s3.smartofood.ru/aztec_cafe_com/menu/43f94406-a781-5dc3-a3c3-c7f1290943f0.jpg'] },
+      { id:10, cat:'sets', name:'Сет «Большой»', price:1490, weight:'920г', desc:'64 ролла всех видов. Для большой компании или настоящего ценителя.', tags:['hit'], cal:'2200 ккал', img:'https://s3.smartofood.ru/aztec_cafe_com/menu/d42ec26e-bb34-5fbe-9fb3-c4f6cf27c58a.jpg', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/d42ec26e-bb34-5fbe-9fb3-c4f6cf27c58a.jpg','https://s3.smartofood.ru/aztec_cafe_com/menu/d487e32d-cd73-5034-8534-a84b76daaf27.jpg'] },
+      { id:24, cat:'sets', name:'Сет «Острый»', price:870, weight:'640г', desc:'32 острых ролла: Дракон ×8, Тунец Спайси ×8, Эби темпура ×8, Жареные с лососем ×8.', tags:['hot','hit'], cal:'1400 ккал', img:'https://s3.smartofood.ru/aztec_cafe_com/menu/61eccb00-c247-596b-8970-8ad578422abf.jpg', imgs:['https://s3.smartofood.ru/aztec_cafe_com/menu/61eccb00-c247-596b-8970-8ad578422abf.jpg','https://s3.smartofood.ru/aztec_cafe_com/menu/e813279f-b9aa-5bb6-8117-2769fb840bdf.png'] },
+      { id:11, cat:'soups', name:'Мисо-суп', price:190, weight:'350мл', desc:'Традиционный японский суп с тофу, водорослями вакамэ и зелёным луком.', tags:[], cal:'85 ккал', img:'https://images.pexels.com/photos/30682814/pexels-photo-30682814.jpeg', imgs:['https://images.pexels.com/photos/30682814/pexels-photo-30682814.jpeg','https://images.pexels.com/photos/30682816/pexels-photo-30682816.jpeg'] },
+      { id:12, cat:'soups', name:'Рамен с курицей', price:370, weight:'500мл', desc:'Насыщенный куриный бульон, пшеничная лапша, яйцо аджицке, нори.', tags:['hit'], cal:'420 ккал', img:'https://images.pexels.com/photos/1907244/pexels-photo-1907244.jpeg', imgs:['https://images.pexels.com/photos/1907244/pexels-photo-1907244.jpeg','https://images.pexels.com/photos/2456435/pexels-photo-2456435.jpeg'] },
+      { id:13, cat:'drinks', name:'Матча латте', price:250, weight:'350мл', desc:'Японский зелёный чай маття с нежной молочной пеной.', tags:['new'], cal:'120 ккал', img:'https://images.pexels.com/photos/14704657/pexels-photo-14704657.jpeg', imgs:['https://images.pexels.com/photos/14704657/pexels-photo-14704657.jpeg','https://images.pexels.com/photos/33143522/pexels-photo-33143522.jpeg'] },
+      { id:14, cat:'drinks', name:'Лимонад юдзу', price:220, weight:'400мл', desc:'Домашний лимонад с японским цитрусом юдзу, мятой и газированной водой.', tags:['hit'], cal:'95 ккал', img:'https://images.pexels.com/photos/26973676/pexels-photo-26973676.jpeg', imgs:['https://images.pexels.com/photos/26973676/pexels-photo-26973676.jpeg','https://images.pexels.com/photos/26973675/pexels-photo-26973675.jpeg'] },
+    ]
+  },
+  pizza: {
+    name: 'Napoli Pizza', red: '#D62828', orange: '#F77F00',
+    hero: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'classic',label:'🍕 Классика'},{key:'special',label:'✨ Особые'},
+      {key:'sets',label:'📦 Комбо'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'classic', name:'Маргарита', price:490, weight:'400г', desc:'Томатный соус, моцарелла, свежий базилик. Классика неаполитанской пиццы.', tags:['hit'], cal:'750 ккал', img:'https://images.pexels.com/photos/29609013/pexels-photo-29609013.jpeg', imgs:['https://images.pexels.com/photos/29609013/pexels-photo-29609013.jpeg','https://images.pexels.com/photos/32872596/pexels-photo-32872596.jpeg'] },
+      { id:2, cat:'classic', name:'Пепперони', price:590, weight:'420г', desc:'Острая итальянская салями, томатный соус, двойная моцарелла.', tags:['hit','hot'], cal:'820 ккал', img:'https://images.pexels.com/photos/17708242/pexels-photo-17708242.jpeg', imgs:['https://images.pexels.com/photos/17708242/pexels-photo-17708242.jpeg','https://images.pexels.com/photos/5175567/pexels-photo-5175567.jpeg'] },
+      { id:3, cat:'classic', name:'Четыре сыра', price:650, weight:'410г', desc:'Моцарелла, горгонзола, пармезан и рикотта. Нежный сливочный вкус.', tags:['hit'], cal:'900 ккал', img:'https://images.pexels.com/photos/13214426/pexels-photo-13214426.jpeg', imgs:['https://images.pexels.com/photos/13214426/pexels-photo-13214426.jpeg','https://images.pexels.com/photos/33194921/pexels-photo-33194921.jpeg'] },
+      { id:4, cat:'special', name:'Гавайская', price:540, weight:'430г', desc:'Ветчина, ананас, моцарелла, томатный соус. Спорная, но любимая.', tags:['new'], cal:'780 ккал', img:'https://images.pexels.com/photos/14334060/pexels-photo-14334060.jpeg', imgs:['https://images.pexels.com/photos/14334060/pexels-photo-14334060.jpeg','https://images.pexels.com/photos/33592994/pexels-photo-33592994.jpeg'] },
+      { id:5, cat:'special', name:'BBQ Курица', price:610, weight:'450г', desc:'Куриное филе, соус BBQ, красный лук, моцарелла, кинза.', tags:['hit'], cal:'850 ккал', img:'https://images.pexels.com/photos/35609608/pexels-photo-35609608.jpeg', imgs:['https://images.pexels.com/photos/35609608/pexels-photo-35609608.jpeg','https://images.pexels.com/photos/3644/pizza-restaurant-dinner-lunch.jpg'] },
+      { id:6, cat:'special', name:'Дьябло', price:630, weight:'420г', desc:'Острая салями, халапеньо, перец чили, томатный соус, моцарелла.', tags:['hot','new'], cal:'870 ккал', img:'https://images.pexels.com/photos/34413634/pexels-photo-34413634.jpeg', imgs:['https://images.pexels.com/photos/34413634/pexels-photo-34413634.jpeg','https://images.pexels.com/photos/6111951/pexels-photo-6111951.jpeg'] },
+      { id:7, cat:'special', name:'Морская', price:690, weight:'440г', desc:'Креветки, кальмары, мидии, соус песто, моцарелла, лимон.', tags:['new'], cal:'760 ккал', img:'https://images.pexels.com/photos/32007632/pexels-photo-32007632.jpeg', imgs:['https://images.pexels.com/photos/32007632/pexels-photo-32007632.jpeg','https://images.pexels.com/photos/29807157/pexels-photo-29807157.jpeg'] },
+      { id:8, cat:'sets', name:'Комбо 2 пиццы', price:990, weight:'800г', desc:'Любые 2 пиццы классической линейки. Выбирай сам.', tags:['hit'], cal:'1600 ккал', img:'https://images.pexels.com/photos/34425646/pexels-photo-34425646.jpeg', imgs:['https://images.pexels.com/photos/34425646/pexels-photo-34425646.jpeg','https://images.pexels.com/photos/34425632/pexels-photo-34425632.jpeg'] },
+      { id:9, cat:'drinks', name:'Лимонад', price:180, weight:'400мл', desc:'Домашний лимонад с лимоном, мятой и газированной водой.', tags:[], cal:'90 ккал', img:'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Тирамису', price:290, weight:'150г', desc:'Классический итальянский десерт с маскарпоне и кофе.', tags:['hit'], cal:'380 ккал', img:'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=85' },
+    ]
+  },
+  burger: {
+    name: 'Burger Bros', red: '#E76F51', orange: '#F4A261',
+    hero: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'burgers',label:'🍔 Бургеры'},{key:'sides',label:'🍟 Гарниры'},
+      {key:'sets',label:'📦 Комбо'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'burgers', name:'Классик', price:390, weight:'250г', desc:'Говяжья котлета, листья салата, томат, огурец, соус тысяча островов.', tags:['hit'], cal:'550 ккал', img:'https://images.pexels.com/photos/10153085/pexels-photo-10153085.jpeg', imgs:['https://images.pexels.com/photos/10153085/pexels-photo-10153085.jpeg','https://images.pexels.com/photos/15476358/pexels-photo-15476358.jpeg'] },
+      { id:2, cat:'burgers', name:'Чизбургер', price:420, weight:'270г', desc:'Говяжья котлета, двойной чеддер, маринованные огурцы, горчица, кетчуп.', tags:['hit'], cal:'620 ккал', img:'https://images.pexels.com/photos/23910856/pexels-photo-23910856.jpeg', imgs:['https://images.pexels.com/photos/23910856/pexels-photo-23910856.jpeg','https://images.pexels.com/photos/11264609/pexels-photo-11264609.jpeg'] },
+      { id:3, cat:'burgers', name:'Двойной', price:550, weight:'380г', desc:'Две котлеты, двойной сыр, бекон, лук, соус. Для настоящих мужчин.', tags:['hit'], cal:'850 ккал', img:'https://images.pexels.com/photos/12325124/pexels-photo-12325124.jpeg', imgs:['https://images.pexels.com/photos/12325124/pexels-photo-12325124.jpeg','https://images.pexels.com/photos/12325122/pexels-photo-12325122.jpeg'] },
+      { id:4, cat:'burgers', name:'Барбекю', price:490, weight:'300г', desc:'Котлета, хрустящий бекон, карамелизованный лук, соус BBQ, чеддер.', tags:['hit','new'], cal:'710 ккал', img:'https://images.pexels.com/photos/31450820/pexels-photo-31450820.jpeg', imgs:['https://images.pexels.com/photos/31450820/pexels-photo-31450820.jpeg','https://images.pexels.com/photos/1893558/pexels-photo-1893558.jpeg'] },
+      { id:5, cat:'burgers', name:'Острый', price:440, weight:'260г', desc:'Котлета, соус халапеньо, перец чили, маринованные огурцы, чеддер.', tags:['hot'], cal:'640 ккал', img:'https://images.pexels.com/photos/15010286/pexels-photo-15010286.jpeg', imgs:['https://images.pexels.com/photos/15010286/pexels-photo-15010286.jpeg','https://images.pexels.com/photos/9509204/pexels-photo-9509204.jpeg'] },
+      { id:6, cat:'burgers', name:'Куриный', price:380, weight:'240г', desc:'Хрустящее куриное филе, листья салата, томат, соус ранч.', tags:['hit'], cal:'480 ккал', img:'https://images.pexels.com/photos/18811742/pexels-photo-18811742.jpeg', imgs:['https://images.pexels.com/photos/18811742/pexels-photo-18811742.jpeg','https://images.pexels.com/photos/13573664/pexels-photo-13573664.jpeg'] },
+      { id:7, cat:'sides', name:'Картошка фри', price:180, weight:'200г', desc:'Хрустящая картошка фри с морской солью.', tags:['hit'], cal:'350 ккал', img:'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg', imgs:['https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg','https://images.pexels.com/photos/5836999/pexels-photo-5836999.jpeg','https://images.pexels.com/photos/29150162/pexels-photo-29150162.jpeg','https://images.pexels.com/photos/5695616/pexels-photo-5695616.jpeg'] },
+      { id:8, cat:'sides', name:'Луковые кольца', price:220, weight:'180г', desc:'Сладкий лук в хрустящем кляре. Идеально к бургеру.', tags:['new'], cal:'320 ккал', img:'https://images.pexels.com/photos/17313960/pexels-photo-17313960.jpeg', imgs:['https://images.pexels.com/photos/17313960/pexels-photo-17313960.jpeg','https://images.pexels.com/photos/34528321/pexels-photo-34528321.jpeg','https://images.pexels.com/photos/10970330/pexels-photo-10970330.jpeg'] },
+      { id:9, cat:'sets', name:'Комбо бургер+фри', price:520, weight:'450г', desc:'Любой бургер + картошка фри + напиток. Выгодно.', tags:['hit'], cal:'900 ккал', img:'https://images.pexels.com/photos/20117235/pexels-photo-20117235.jpeg', imgs:['https://images.pexels.com/photos/20117235/pexels-photo-20117235.jpeg','https://images.pexels.com/photos/30446280/pexels-photo-30446280.jpeg','https://images.pexels.com/photos/36869509/pexels-photo-36869509.jpeg'] },
+      { id:10, cat:'drinks', name:'Молочный шейк', price:280, weight:'400мл', desc:'Ванильный, шоколадный или клубничный. Густой и холодный.', tags:['hit'], cal:'420 ккал', img:'https://images.pexels.com/photos/10066814/pexels-photo-10066814.jpeg', imgs:['https://images.pexels.com/photos/10066814/pexels-photo-10066814.jpeg','https://images.pexels.com/photos/14662100/pexels-photo-14662100.jpeg','https://images.pexels.com/photos/10117395/pexels-photo-10117395.jpeg'] },
+    ]
+  },
+  shawarma: {
+    name: 'Shawarma King', red: '#606C38', orange: '#DDA15E',
+    hero: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'shawarma',label:'🌯 Шаурма'},{key:'sides',label:'🥙 Дополнения'},
+      {key:'sets',label:'📦 Комбо'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'shawarma', name:'Классическая', price:290, weight:'350г', desc:'Курица, капуста, томат, огурец, чеснок, соус, лаваш. Проверенная годами.', tags:['hit'], cal:'580 ккал', img:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&q=85' },
+      { id:2, cat:'shawarma', name:'Острая', price:310, weight:'350г', desc:'Курица, острый перец, маринованные огурцы, перечный соус, лаваш.', tags:['hot','hit'], cal:'590 ккал', img:'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600&q=85' },
+      { id:3, cat:'shawarma', name:'Сырная', price:340, weight:'380г', desc:'Курица, расплавленный сыр, томат, огурец, сметанный соус.', tags:['new'], cal:'650 ккал', img:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=600&q=85' },
+      { id:4, cat:'shawarma', name:'Двойная', price:420, weight:'500г', desc:'Двойная порция мяса, все начинки, два соуса. Для голодных.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=600&q=85' },
+      { id:5, cat:'shawarma', name:'С говядиной', price:360, weight:'370г', desc:'Говяжье мясо, капуста, томат, лук, чесночный соус.', tags:['new'], cal:'620 ккал', img:'https://images.unsplash.com/photo-1606755456206-b25206cde27e?w=600&q=85' },
+      { id:6, cat:'sides', name:'Картошка по-деревенски', price:180, weight:'200г', desc:'Запечённый картофель с розмарином и морской солью.', tags:['hit'], cal:'320 ккал', img:'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=600&q=85' },
+      { id:7, cat:'sets', name:'Комбо шаурма+картошка', price:420, weight:'550г', desc:'Классическая шаурма + картошка + напиток.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=85' },
+      { id:8, cat:'drinks', name:'Айран', price:120, weight:'300мл', desc:'Холодный кисломолочный напиток. Освежает.', tags:['hit'], cal:'80 ккал', img:'https://images.unsplash.com/photo-1571091655789-405eb7a3a3a8?w=600&q=85' },
+    ]
+  },
+  pasta: {
+    name: 'La Pasta', red: '#BC6C25', orange: '#DDA15E',
+    hero: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'pasta',label:'🍝 Паста'},{key:'pizza',label:'🍕 Пицца'},
+      {key:'desserts',label:'🍮 Десерты'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'pasta', name:'Карбонара', price:490, weight:'320г', desc:'Паста с беконом, яичным желтком, пармезаном и чёрным перцем. Рим в тарелке.', tags:['hit'], cal:'680 ккал', img:'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600&q=85' },
+      { id:2, cat:'pasta', name:'Болоньезе', price:520, weight:'350г', desc:'Домашняя паста с мясным рагу, томатами и пармезаном. Готовится 4 часа.', tags:['hit'], cal:'720 ккал', img:'https://images.unsplash.com/photo-1588013273468-315fd88ea34c?w=600&q=85' },
+      { id:3, cat:'pasta', name:'Альфредо', price:470, weight:'310г', desc:'Фетучини, сливочный соус, пармезан. Нежно и сытно.', tags:['hit'], cal:'750 ккал', img:'https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=600&q=85' },
+      { id:4, cat:'pasta', name:'Арабьята', price:440, weight:'300г', desc:'Пенне, томатный соус, перец чили, чеснок. Острая классика.', tags:['hot'], cal:'580 ккал', img:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=85' },
+      { id:5, cat:'pasta', name:'Морская', price:590, weight:'340г', desc:'Лингвине с креветками, мидиями, кальмарами в соусе из белого вина.', tags:['new'], cal:'620 ккал', img:'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=85' },
+      { id:6, cat:'pizza', name:'Маргарита', price:490, weight:'400г', desc:'Томатный соус, моцарелла, базилик. Классика.', tags:['hit'], cal:'750 ккал', img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=85' },
+      { id:7, cat:'pizza', name:'Четыре сыра', price:650, weight:'410г', desc:'Моцарелла, горгонзола, пармезан и рикотта.', tags:['hit'], cal:'900 ккал', img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=85' },
+      { id:8, cat:'desserts', name:'Тирамису', price:320, weight:'180г', desc:'Классический итальянский десерт с маскарпоне, кофе и савоярди.', tags:['hit'], cal:'380 ккал', img:'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Эспрессо', price:120, weight:'30мл', desc:'Насыщенный итальянский эспрессо из арабики.', tags:[], cal:'10 ккал', img:'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Лимончелло (б/а)', price:180, weight:'200мл', desc:'Безалкогольный лимонный напиток с мятой и газированной водой.', tags:['new'], cal:'85 ккал', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=85' },
+    ]
+  },
+  georgian: {
+    name: 'Кавказ', red: '#6B2737', orange: '#C1440E',
+    hero: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'hot',label:'🔥 Горячее'},{key:'grill',label:'🥩 Гриль'},
+      {key:'cold',label:'🥗 Закуски'},{key:'soups',label:'🍲 Супы'},{key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'hot', name:'Хачапури по-аджарски', price:490, weight:'380г', desc:'Лодочка из теста с сыром сулугуни, яйцом и сливочным маслом. Горячее.', tags:['hit'], cal:'820 ккал', img:'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&q=85' },
+      { id:2, cat:'hot', name:'Хинкали', price:420, weight:'360г', desc:'6 штук. Сочные пельмени с говядиной, свининой, луком и специями.', tags:['hit'], cal:'540 ккал', img:'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=85' },
+      { id:3, cat:'grill', name:'Шашлык свиной', price:650, weight:'300г', desc:'Свиная шея на углях, маринованная в луке и специях. С соусом ткемали.', tags:['hit'], cal:'680 ккал', img:'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&q=85' },
+      { id:4, cat:'grill', name:'Люля-кебаб', price:590, weight:'280г', desc:'Рубленая баранина на шампуре со специями. Подаётся с лавашем.', tags:['hot'], cal:'640 ккал', img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=85' },
+      { id:5, cat:'soups', name:'Харчо', price:380, weight:'450мл', desc:'Наваристый суп из говядины с рисом, грецкими орехами и тклапи.', tags:['hit','hot'], cal:'420 ккал', img:'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?w=600&q=85' },
+      { id:6, cat:'cold', name:'Пхали', price:290, weight:'200г', desc:'Три вида: из шпината, свёклы и фасоли с грецкими орехами и зеленью.', tags:['new'], cal:'180 ккал', img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=85' },
+      { id:7, cat:'hot', name:'Оджахури', price:590, weight:'350г', desc:'Жареная свинина с картофелем, луком и зеленью на сковороде.', tags:['hit'], cal:'760 ккал', img:'https://images.unsplash.com/photo-1504544750208-dc0358e63f7f?w=600&q=85' },
+      { id:8, cat:'hot', name:'Чкмерули', price:620, weight:'400г', desc:'Цыплёнок в молочно-чесночном соусе. Нежнейшее мясо.', tags:['hit','new'], cal:'720 ккал', img:'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Лимонад тархун', price:150, weight:'350мл', desc:'Освежающий напиток с эстрагоном. Классика Кавказа.', tags:['hit'], cal:'95 ккал', img:'https://images.unsplash.com/photo-1546173159-315724a31696?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Компот', price:120, weight:'350мл', desc:'Домашний компот из сухофруктов.', tags:[], cal:'80 ккал', img:'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&q=85' },
+    ]
+  },
+  ramen: {
+    name: 'Ramen House', red: '#1B4332', orange: '#52B788',
+    hero: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=85',
+    cats: [
+      {key:'top',label:'⭐ Хиты'},{key:'ramen',label:'🍜 Рамен'},{key:'hot',label:'🥟 Закуски'},
+      {key:'drinks',label:'🥤 Напитки'}
+    ],
+    menu: [
+      { id:1, cat:'ramen', name:'Тонкоцу', price:490, weight:'500мл', desc:'Насыщенный бульон из свиных костей, рамен, чашу, яйцо аджицке, нори, бамбук.', tags:['hit'], cal:'580 ккал', img:'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=85' },
+      { id:2, cat:'ramen', name:'Мисо рамен', price:470, weight:'500мл', desc:'Бульон с пастой мисо, кукуруза, масло, мясо чашу, яйцо, нори.', tags:['hit'], cal:'540 ккал', img:'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=85' },
+      { id:3, cat:'ramen', name:'Спайси рамен', price:510, weight:'500мл', desc:'Острый бульон с кимчи, тофу, кунжутом и зелёным луком.', tags:['hot','new'], cal:'520 ккал', img:'https://images.unsplash.com/photo-1578020190125-f4f7c18bc9cb?w=600&q=85' },
+      { id:4, cat:'ramen', name:'Том Ям', price:460, weight:'450мл', desc:'Тайский кислый суп с креветками, грибами и лемонграссом.', tags:['hot','hit'], cal:'480 ккал', img:'https://images.unsplash.com/photo-1559847844-5315695dadae?w=600&q=85' },
+      { id:5, cat:'hot', name:'Гёдза', price:320, weight:'200г', desc:'6 штук. Жареные пельмени с свининой и капустой. Соус понзу.', tags:['hit'], cal:'380 ккал', img:'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=85' },
+      { id:6, cat:'hot', name:'Удон с курицей', price:440, weight:'400г', desc:'Толстая пшеничная лапша с курицей терияки и овощами.', tags:['hit'], cal:'520 ккал', img:'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=600&q=85' },
+      { id:7, cat:'hot', name:'Вок с говядиной', price:520, weight:'380г', desc:'Говядина, лапша, болгарский перец, брокколи, соус соевый.', tags:['new'], cal:'560 ккал', img:'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=85' },
+      { id:8, cat:'hot', name:'Dim Sum', price:390, weight:'240г', desc:'8 штук. Паровые пельмени с уткой и грибами шиитаке.', tags:['new'], cal:'340 ккал', img:'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=85' },
+      { id:9, cat:'drinks', name:'Матча латте', price:250, weight:'350мл', desc:'Японский зелёный чай маття с молоком.', tags:['hit'], cal:'120 ккал', img:'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=85' },
+      { id:10, cat:'drinks', name:'Японский лимонад', price:190, weight:'400мл', desc:'Газированный лимонад с юдзу и мятой.', tags:[], cal:'80 ккал', img:'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=85' },
+    ]
+  },
+};
+
+let MENU = BRANDS.sushi.menu;
+let currentBrandKey = 'sushi';
+let cart = JSON.parse(localStorage.getItem('ichi_cart') || '{}');
+let currentCat = 'top';
+
+function selectBrand(key) {
+  const b = BRANDS[key];
+  if (!b) return;
+  currentBrandKey = key;
+  MENU = b.menu;
+  cart = {};
+  saveCart();
+  document.documentElement.style.setProperty('--red', b.red);
+  document.documentElement.style.setProperty('--orange', b.orange);
+  const heroBgEl = document.getElementById('hero-bg');
+  if (heroBgEl) {
+    const img = new Image();
+    img.onload = () => { heroBgEl.style.backgroundImage = `url('${img.src}')`; heroBgEl.classList.add('loaded'); };
+    img.src = b.hero;
+  }
+  const nameEl = document.getElementById('restaurant-name');
+  if (nameEl) nameEl.textContent = b.name;
+  renderCats(key);
+  renderMenu();
+  showScreen('screen-menu');
+}
+
+function changeBrand() {
+  cart = {};
+  saveCart();
+  showScreen('screen-picker');
+}
+
+function saveCart() { localStorage.setItem('ichi_cart', JSON.stringify(cart)); }
+function getCartCount() { return Object.values(cart).reduce((s,x)=>s+x.qty,0); }
+function getCartSum()   { return Object.values(cart).reduce((s,x)=>s+x.price*x.qty,0); }
+
+function updateCartUI() {
+  const count = getCartCount();
+  const fab = document.getElementById('cart-fab');
+  const badge = document.getElementById('cart-badge');
+  const prevCount = parseInt(badge.textContent) || 0;
+  badge.textContent = count;
+  if (count > prevCount) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
+  fab.classList.toggle('has-items', count > 0);
+}
+
+function addToCart(id, btnEl) {
+  const item = MENU.find(x=>x.id===id);
+  if (!cart[id]) cart[id] = {...item, qty:0};
+  cart[id].qty++;
+  saveCart();
+  updateCartUI();
+  const fab = document.getElementById('cart-fab');
+  fab.classList.remove('bounce');
+  void fab.offsetWidth;
+  fab.classList.add('bounce');
+  fab.addEventListener('animationend', () => fab.classList.remove('bounce'), { once: true });
+  if (btnEl) {
+    btnEl.innerHTML = `<span class="cart-icon">🛒</span> В корзине: ${cart[id].qty}`;
+    btnEl.classList.add('in-cart');
+    spawnParticles(btnEl);
+  }
+}
+
+function spawnParticles(btnEl) {
+  const fab = document.getElementById('cart-fab');
+  const br = btnEl.getBoundingClientRect();
+  const fr = fab.getBoundingClientRect();
+  const sx = br.left + br.width/2, sy = br.top + br.height/2;
+  const ex = fr.left + fr.width/2, ey = fr.top + fr.height/2;
+  const colors = ['#E8321A','#FF6A1A','#FFB020','#FF3B30'];
+  for (let i=0; i<6; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 6 + Math.random()*6;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${sx}px;top:${sy}px;
+      background:${colors[i%colors.length]};
+      animation-delay:${i*50}ms;
+    `;
+    p.style.setProperty('--tx', (ex-sx+(Math.random()-0.5)*60)+'px');
+    p.style.setProperty('--ty', (ey-sy+(Math.random()-0.5)*60)+'px');
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 900);
+  }
+}
+
+const CAT_LABELS = {
+  top:'⭐ Топ блюд', rolls:'Роллы', hot:'Горячие', sets:'Сеты',
+  soups:'Супы', salads:'Салаты', desserts:'Десерты', drinks:'Напитки'
+};
+const CAT_EMOJIS = {
+  top:'⭐', rolls:'🌀', hot:'🔥', sets:'📦', soups:'🍜', salads:'🥗', desserts:'🍡', drinks:'🥤'
+};
+
+function toggleCatDropdown() {
+  closeAboutDropdown();
+  const trigger = document.getElementById('cat-trigger');
+  const dd = document.getElementById('cat-dropdown');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  trigger.classList.toggle('open', !isOpen);
+}
+
+function toggleAboutDropdown() {
+  const trigger = document.getElementById('about-trigger');
+  const dd = document.getElementById('about-dropdown');
+  document.getElementById('cat-dropdown').classList.remove('open');
+  document.getElementById('cat-trigger').classList.remove('open');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  trigger.classList.toggle('open', !isOpen);
+}
+
+function closeAboutDropdown() {
+  document.getElementById('about-dropdown')?.classList.remove('open');
+  document.getElementById('about-trigger')?.classList.remove('open');
+}
+
+function pickCat(cat, e) {
+  e.stopPropagation();
+  currentCat = cat;
+  document.querySelectorAll('.cat-option').forEach(o => {
+    o.classList.toggle('active', o.dataset.cat === cat);
+  });
+  document.getElementById('cat-dropdown').classList.remove('open');
+  document.getElementById('cat-trigger').classList.remove('open');
+  const label = document.getElementById('cat-trigger-label');
+  if (label && CAT_NAMES[cat]) label.textContent = CAT_NAMES[cat];
+  renderMenu();
+}
+
+// Close dropdown when tapping outside
+document.addEventListener('click', e => {
+  const catTrigger = document.getElementById('cat-trigger');
+  const aboutTrigger = document.getElementById('about-trigger');
+  if (catTrigger && !catTrigger.contains(e.target)) {
+    document.getElementById('cat-dropdown').classList.remove('open');
+    catTrigger.classList.remove('open');
+  }
+  if (aboutTrigger && !aboutTrigger.contains(e.target)) {
+    document.getElementById('about-dropdown').classList.remove('open');
+    aboutTrigger.classList.remove('open');
+  }
+});
+
+function filterCat(cat, btnEl) {
+  currentCat = cat;
+  renderMenu();
+}
+
+let CAT_NAMES = { top:'⭐ Хиты', rolls:'Роллы', hot:'Горячие', sets:'Сеты', soups:'Супы', salads:'Салаты', desserts:'Десерты', drinks:'Напитки' };
+
+function renderCats(brandKey) {
+  const b = BRANDS[brandKey];
+  if (!b || !b.cats) return;
+  CAT_NAMES = {};
+  b.cats.forEach(c => { CAT_NAMES[c.key] = c.label; });
+  const dd = document.getElementById('cat-dropdown');
+  dd.innerHTML = b.cats.map(c =>
+    `<div class="cat-option${c.key==='top'?' active':''}" data-cat="${c.key}" onclick="pickCat('${c.key}',event)"><span class="cat-opt-dot"></span>${c.label}</div>`
+  ).join('');
+  const label = document.getElementById('cat-trigger-label');
+  if (label) label.textContent = b.cats[0].label;
+  currentCat = 'top';
+}
+const TAG_MAP = { hot:'Острое', new:'Новинка', hit:'Хит' };
+
+function renderCardMediaGallery(item) {
+  var slides = item.imgs.map(function(src) {
+    return '<div class="card-gallery-slide" style="position:relative">' +
+      '<img data-src="' + src + '" alt="' + item.name + '" onload="this.classList.add(\'loaded\')" onerror="this.classList.add(\'loaded\')">' +
+      '<div class="card-grad"></div>' +
+    '</div>';
+  }).join('');
+  var dots = item.imgs.map(function(_, i) {
+    return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
+  }).join('');
+  return '<div class="card-gallery-wrap"' +
+    ' ontouchstart="onGalleryTouchStart(event)"' +
+    ' ontouchmove="onGalleryTouchMove(event)"' +
+    ' ontouchend="onGalleryTouchEnd(' + item.id + ',event)"' +
+    ' onclick="onGalleryClick(' + item.id + ',event)">' +
+    '<div class="card-gallery" id="gallery-' + item.id + '"' +
+    ' onscroll="updateDots(' + item.id + ',this)">' +
+    slides + '</div>' +
+    '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>' +
+    '<div class="card-cal-badge">' + item.cal + '</div>' +
+  '</div>';
+}
+
+function renderCardMedia(item) {
+  if (item.imgs && item.imgs.length > 1) {
+    var slides = item.imgs.map(function(src) {
+      return '<div class="card-gallery-slide"><img data-src="' + src + '" alt="' + item.name + '" onload="this.classList.add(\'loaded\')" onerror="this.classList.add(\'loaded\')"></div>';
+    }).join('');
+    var dots = item.imgs.map(function(_, i) {
+      return '<div class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></div>';
+    }).join('');
+    return '<div class="card-gallery" id="gallery-' + item.id + '" onscroll="updateDots(' + item.id + ',this)">' + slides + '</div>' +
+           '<div class="card-gallery-dots" id="dots-' + item.id + '">' + dots + '</div>';
+  }
+  return '<img class="card-image" id="img-' + item.id + '" alt="' + item.name + '" ' +
+    'onload="this.classList.add(\'loaded\');document.getElementById(\'iwrap-' + item.id + '\').classList.add(\'img-loaded\')" ' +
+    'onerror="this.classList.add(\'loaded\');document.getElementById(\'iwrap-' + item.id + '\').classList.add(\'img-loaded\')">' +
+    '<div class="shimmer-layer"></div>';
+}
+
+function renderMenu() {
+  const isTop = currentCat === 'top';
+  const items = isTop
+    ? MENU.filter(x=>x.tags.includes('hit'))
+    : MENU.filter(x=>x.cat===currentCat);
+  const grouped = {};
+  if (isTop) {
+    grouped['top'] = items;
+  } else {
+    items.forEach(item => {
+      if (!grouped[item.cat]) grouped[item.cat] = [];
+      grouped[item.cat].push(item);
+    });
+  }
+  let html = '';
+  Object.entries(grouped).forEach(([cat, catItems], gi) => {
+    html += `<div class="section-header">
+      <div class="section-title">${CAT_NAMES[cat]||cat}</div>
+      <div class="section-line"></div>
+    </div>`;
+    html += '<div class="cards-grid">';
+    catItems.forEach((item, idx) => {
+      const inCart = cart[item.id]?.qty > 0;
+      const btnTxt = inCart
+        ? `<span class="cart-icon">🛒</span> В корзине: ${cart[item.id].qty}`
+        : 'Добавить в корзину';
+      const tagsHtml = item.tags.map(t=>`<span class="tag ${t}">${TAG_MAP[t]||t}</span>`).join('');
+      html += `
+        <div class="food-card" id="card-${item.id}" style="animation-delay:${idx*60}ms"
+             onclick="toggleCard(${item.id},event)">
+          ${item.imgs && item.imgs.length > 1
+            ? renderCardMediaGallery(item)
+            : '<div class="card-image-wrap" id="iwrap-' + item.id + '">' + renderCardMedia(item) + '<div class="card-grad"></div><div class="card-cal-badge">' + item.cal + '</div></div>'
+          }
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-name">${item.name}</div>
+              <div class="card-price-wrap">
+                <span class="card-price">${item.price} ₽</span>
+                <span class="card-weight">${item.weight}</span>
+              </div>
+            </div>
+            <div class="card-desc-wrap">
+              <div class="card-tags">${tagsHtml}</div>
+              <div class="card-desc">${item.desc}</div>
+            </div>
+            <button class="add-btn ${inCart?'in-cart':''}" id="addbtn-${item.id}"
+              onclick="event.stopPropagation();addToCart(${item.id},this)">
+              ${btnTxt}
+            </button>
+          </div>
+        </div>`;
+    });
+    html += '</div><div style="height:6px"></div>';
+  });
+  document.getElementById('menu-content').innerHTML = html;
+
+  // Lazy load — одиночные фото
+  MENU.forEach(item => {
+    const imgEl = document.getElementById('img-'+item.id);
+    if (imgEl) {
+      if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries, o) => {
+          entries.forEach(e => { if (e.isIntersecting) { imgEl.src = item.img; o.disconnect(); } });
+        }, { rootMargin:'200px' });
+        obs.observe(imgEl);
+      } else { imgEl.src = item.img; }
+    }
+    // Lazy load галереи
+    if (item.imgs) {
+      const gallery = document.getElementById('gallery-'+item.id);
+      if (gallery) {
+        const slides = gallery.querySelectorAll('img[data-src]');
+        if ('IntersectionObserver' in window) {
+          const obs = new IntersectionObserver((entries, o) => {
+            entries.forEach(e => {
+              if (e.isIntersecting) {
+                slides.forEach(img => { img.src = img.dataset.src; });
+                o.disconnect();
+              }
+            });
+          }, { rootMargin:'200px' });
+          obs.observe(gallery);
+        } else {
+          slides.forEach(img => { img.src = img.dataset.src; });
+        }
+      }
+    }
+  });
+
+}
+
+function updateDots(id, gallery) {
+  const dots = document.querySelectorAll(`#dots-${id} .card-gallery-dot`);
+  if (!dots.length) return;
+  const idx = Math.round(gallery.scrollLeft / gallery.offsetWidth);
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+}
+
+var _galleryTouchStartX = 0;
+var _galleryTouchStartY = 0;
+var _galleryTouchStartTime = 0;
+var _galleryScrollStart = 0;
+var _galleryDidSwipe = false;
+var _galleryEl = null;
+
+function onGalleryTouchStart(e) {
+  _galleryTouchStartX = e.touches[0].clientX;
+  _galleryTouchStartY = e.touches[0].clientY;
+  _galleryTouchStartTime = Date.now();
+  _galleryDidSwipe = false;
+  _galleryEl = e.currentTarget.querySelector('.card-gallery');
+  _galleryScrollStart = _galleryEl ? _galleryEl.scrollLeft : 0;
+}
+function onGalleryTouchMove(e) {
+  var dx = e.touches[0].clientX - _galleryTouchStartX;
+  var dy = Math.abs(e.touches[0].clientY - _galleryTouchStartY);
+  if (Math.abs(dx) > 8 && Math.abs(dx) > dy) {
+    _galleryDidSwipe = true;
+    e.preventDefault();
+    if (_galleryEl) _galleryEl.scrollLeft = _galleryScrollStart - dx;
+  }
+}
+function onGalleryTouchEnd(id, e) {
+  var endX = e.changedTouches[0].clientX;
+  var dx = endX - _galleryTouchStartX;
+  var adx = Math.abs(dx);
+  var dy = e.changedTouches[0].clientY - _galleryTouchStartY;
+  // свернуть при свайпе вниз независимо от _galleryDidSwipe
+  if (dy > 40 && dy > adx) {
+    var card = document.getElementById('card-' + id);
+    if (card && card.classList.contains('expanded')) {
+      card.classList.remove('expanded');
+      return;
+    }
+  }
+  if (!_galleryDidSwipe || !_galleryEl) return;
+  var w = _galleryEl.offsetWidth;
+  var elapsed = Date.now() - _galleryTouchStartTime;
+  var velocity = adx / elapsed; // px/ms
+  var cur = Math.round(_galleryScrollStart / w);
+  var total = _galleryEl.querySelectorAll('.card-gallery-slide').length;
+  var next;
+  if (velocity > 0.2 || adx > w * 0.25) {
+    next = dx < 0 ? Math.min(cur + 1, total - 1) : Math.max(cur - 1, 0);
+  } else {
+    next = cur;
+  }
+  _galleryEl.scrollTo({ left: next * w, behavior: 'smooth' });
+}
+function onGalleryTap(id) {
+  if (_galleryDidSwipe) return;
+  var card = document.getElementById('card-'+id);
+  card.classList.toggle('expanded');
+}
+function onGalleryClick(id, e) {
+  e.stopPropagation();
+  onGalleryTap(id);
+}
+
+function toggleCard(id, e) {
+  if (e.target.tagName==='BUTTON') return;
+  document.getElementById('card-'+id).classList.toggle('expanded');
+}
+
+function openCart() {
+  renderCartSheet();
+  document.getElementById('cart-sheet').classList.add('open');
+}
+function closeCart() {
+  document.getElementById('cart-sheet').classList.remove('open');
+}
+
+function renderCartSheet() {
+  const items = Object.values(cart).filter(x=>x.qty>0);
+  const sum = getCartSum();
+  document.getElementById('sheet-count').textContent = items.length ? `${getCartCount()} позиции` : '';
+  if (!items.length) {
+    document.getElementById('cart-body').innerHTML = `
+      <div class="empty-cart">
+        <span class="empty-icon">🍣</span>
+        <div class="empty-text">Корзина пуста</div>
+        <div class="empty-sub">Добавьте блюда из меню</div>
+      </div>`;
+  } else {
+    document.getElementById('cart-body').innerHTML = items.map(item=>`
+      <div class="cart-item">
+        <img class="cart-item-img" src="${item.img}" alt="${item.name}">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${(item.price*item.qty).toLocaleString('ru')} ₽</div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('cart-total-sum').textContent = sum.toLocaleString('ru') + ' ₽';
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty = Math.max(0, cart[id].qty+delta);
+  if (cart[id].qty===0) delete cart[id];
+  saveCart();
+  updateCartUI();
+  renderCartSheet();
+  const btn = document.getElementById('addbtn-'+id);
+  if (btn) {
+    if (cart[id]?.qty > 0) {
+      btn.innerHTML = `<span class="cart-icon">🛒</span> В корзине: ${cart[id].qty}`;
+      btn.classList.add('in-cart');
+    } else {
+      btn.innerHTML = 'Добавить в корзину';
+      btn.classList.remove('in-cart');
+    }
+  }
+}
+
+function goToCheckout() {
+  if (!getCartCount()) return;
+  closeCart();
+  const sum = getCartSum(), count = getCartCount();
+  document.getElementById('co-count').textContent = count;
+  document.getElementById('co-items-sum').textContent = sum.toLocaleString('ru') + ' ₽';
+  document.getElementById('co-total').textContent = sum.toLocaleString('ru') + ' ₽';
+  if (tg?.initDataUnsafe?.user?.first_name) {
+    document.getElementById('input-name').value = tg.initDataUnsafe.user.first_name;
+  }
+  // сбросить поля адреса
+  ['input-street','input-house','input-building','input-floor','input-flat'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('address-toggle-btn').textContent = '📍 Указать адрес';
+  document.getElementById('address-toggle-btn').classList.remove('filled');
+  document.getElementById('address-fields').classList.remove('expanded');
+  showScreen('screen-checkout');
+}
+
+
+let selectedPay = 'cash';
+function selectPay(type) {
+  selectedPay = type;
+  ['cash','online','tg'].forEach(t => {
+    document.getElementById('pay-'+t).classList.toggle('active', t===type);
+  });
+  if (type==='online' || type==='tg') {
+    showToast('💳 Платёжный провайдер не подключён — demo режим');
+  }
+}
+
+const API_URL = 'https://ichiban-sushi-bot-production.up.railway.app';
+
+async function placeOrder() {
+  const name = document.getElementById('input-name').value.trim();
+  const street = document.getElementById('input-street').value.trim();
+  const house = document.getElementById('input-house').value.trim();
+  const building = document.getElementById('input-building').value.trim();
+  const floor = document.getElementById('input-floor').value.trim();
+  const flat = document.getElementById('input-flat').value.trim();
+  const phone = document.getElementById('input-phone')?.value?.trim() || '';
+  const comment = document.getElementById('input-comment')?.value?.trim() || '';
+  const payment = document.querySelector('.pay-btn.active')?.dataset?.pay || 'Наличными курьеру';
+  if (!name) { showToast('Введите имя'); return; }
+  if (!street) { showToast('Введите улицу'); return; }
+  if (!house) { showToast('Введите номер дома'); return; }
+  const addr = [street, 'д.' + house, building ? 'корп.' + building : '', floor ? 'эт.' + floor : '', flat ? 'кв.' + flat : ''].filter(Boolean).join(', ');
+
+  const items = Object.entries(cart).map(([id, entry]) => {
+    const item = MENU.find(m => m.id === +id);
+    return { name: item.name, qty: entry.qty, price: item.price };
+  });
+  const total = getCartSum();
+  const orderNum = '#' + Math.floor(1000 + Math.random() * 9000);
+
+  try {
+    const res = await fetch(`${API_URL}/order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, address: addr, comment, payment, items, total, order_num: orderNum, user_id: tg?.initDataUnsafe?.user?.id || null })
+    });
+    if (!res.ok) {
+      showToast('⚠️ Ошибка сервера: ' + res.status);
+      return;
+    }
+    showToast('✅ Заказ отправлен на кухню');
+    localStorage.setItem('ichi_active_order', JSON.stringify({ num: orderNum, step: 1 }));
+    document.getElementById('order-number').textContent = orderNum;
+    showScreen('screen-success');
+    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+  } catch(e) {
+    showToast('⚠️ Ошибка: ' + e.message);
+    console.error('Order fetch error:', e);
+  }
+}
+
+function goBack(id) { showScreen(id, true); }
+
+function showScreen(id, back=false) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('hidden','slide-left');
+    if (s.id!==id) s.classList.add(back ? 'hidden' : 'slide-left');
+  });
+  if (!back) document.querySelector('#'+id).scrollTop = 0;
+  sessionStorage.setItem('ichi_screen', id);
+}
+
+function resetAndGoMenu() {
+  cart = {};
+  saveCart();
+  updateCartUI();
+  renderMenu();
+  showScreen('screen-menu', true);
+}
+
+function showActiveOrderBanner() {
+  const order = JSON.parse(localStorage.getItem('ichi_active_order') || 'null');
+  const banner = document.getElementById('active-order-banner');
+  if (!order) { banner.classList.remove('visible'); return; }
+  banner.classList.add('visible');
+  document.getElementById('banner-order-num').textContent = order.num;
+  const steps = ['ostep-1','ostep-2','ostep-3','ostep-4'];
+  const s = order.step || 1;
+  steps.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('done', 'active');
+    if (i+1 < s) el.classList.add('done');
+    else if (i+1 === s) el.classList.add('active');
+  });
+  const labels = ['Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
+  document.getElementById('banner-order-status').textContent = labels[(s-1)] || 'Готовим';
+  const delivered = s >= 4;
+  document.getElementById('banner-order-label').textContent = delivered ? 'Заказ доставлен 🏠' : 'Ваш заказ в работе';
+  const dismissBtn = document.getElementById('banner-dismiss-btn');
+  dismissBtn.style.display = delivered ? 'flex' : 'none';
+  dismissBtn.style.opacity = delivered ? '1' : '0';
+}
+
+function dismissOrder() {
+  localStorage.removeItem('ichi_active_order');
+  document.getElementById('active-order-banner').classList.remove('visible');
+}
+
+async function openOrderHistory() {
+  const body = document.getElementById('history-body');
+  body.innerHTML = '<div style="text-align:center; color:#666; padding:48px 24px; font-size:15px;">Загружаем...</div>';
+  document.getElementById('history-sheet').classList.add('open');
+
+  const userId = tg?.initDataUnsafe?.user?.id;
+  if (!userId) {
+    body.innerHTML = '<div style="text-align:center; color:#666; padding:48px 24px; font-size:15px;">Войдите через Telegram чтобы видеть историю</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/orders/history/${userId}`);
+    const data = await res.json();
+    if (!data.ok || !data.orders.length) {
+      body.innerHTML = '<div style="text-align:center; color:#666; padding:48px 24px; font-size:15px;">Заказов пока нет</div>';
+      return;
+    }
+    const stepLabels = ['', 'Принят ✓', 'Готовим 👨‍🍳', 'В пути 🛵', 'Доставлен 🏠'];
+    body.innerHTML = data.orders.map(o => `
+      <div style="padding:14px 16px; border-bottom:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-weight:700; color:var(--fg);">${o.num}</span>
+          <span style="font-size:12px; color:#888;">${o.date}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <span style="font-size:13px; color:#aaa;">${stepLabels[o.step] || ''}</span>
+          <span style="font-size:14px; font-weight:600; color:var(--red);">${(o.total||0).toLocaleString('ru')} ₽</span>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center; color:#666; padding:48px 24px; font-size:15px;">Ошибка загрузки</div>';
+  }
+}
+
+function closeOrderHistory() {
+  document.getElementById('history-sheet').classList.remove('open');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// свернуть раскрытые карточки при скролле меню
+document.getElementById('screen-menu').addEventListener('scroll', () => {
+  document.querySelectorAll('.food-card.expanded').forEach(c => c.classList.remove('expanded'));
+}, { passive: true });
+
+renderMenu();
+const _savedScreen = sessionStorage.getItem('ichi_screen');
+showScreen(_savedScreen || 'screen-picker');
+updateOpenStatus();
+showActiveOrderBanner();
+
+setInterval(async () => {
+  const order = JSON.parse(localStorage.getItem('ichi_active_order') || 'null');
+  if (!order || order.step >= 4) return;
+  try {
+    const res = await fetch(`${API_URL}/order-status/${encodeURIComponent(order.num)}`);
+    const data = await res.json();
+    if (data.ok && data.step !== order.step) {
+      order.step = data.step;
+      localStorage.setItem('ichi_active_order', JSON.stringify(order));
+      showActiveOrderBanner();
+      if (data.step === 4) showToast('🏠 Заказ доставлен!');
+      else if (data.step === 3) showToast('🛵 Курьер уже едет!');
+      else if (data.step === 2) showToast('👨‍🍳 Ресторан начал готовить');
+    }
+  } catch(e) {
+    console.error('Poll error:', e);
+  }
+}, 10000);
+
+function toggleAddressFields() {
+  const fields = document.getElementById('address-fields');
+  const btn = document.getElementById('address-toggle-btn');
+  const isExpanded = fields.classList.contains('expanded');
+  if (!isExpanded) {
+    fields.classList.add('expanded');
+    btn.textContent = '📍 Скрыть адрес';
+    setTimeout(() => document.getElementById('input-street').focus(), 380);
+  } else {
+    fields.classList.remove('expanded');
+    const street = document.getElementById('input-street').value.trim();
+    const house = document.getElementById('input-house').value.trim();
+    btn.textContent = street && house ? '✓ ' + street + ', д.' + house : '📍 Указать адрес';
+    btn.classList.toggle('filled', !!(street && house));
+  }
+}
+
+// Автодополнение адреса через Nominatim
+let _addrDebounce = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const streetInput = document.getElementById('input-street');
+  if (streetInput) streetInput.addEventListener('input', function() {
+    clearTimeout(_addrDebounce);
+    const val = this.value.trim();
+    if (val.length < 3) { hideSuggestions(); return; }
+    _addrDebounce = setTimeout(() => fetchAddressSuggestions(val), 500);
+  });
+});
+
+async function fetchAddressSuggestions(query) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(query)}&city=%D0%9B%D1%83%D0%B3%D0%B0%D0%BD%D1%81%D0%BA&format=json&limit=5&accept-language=ru`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'IchibanSushiBot/1.0' } });
+    const data = await res.json();
+    showSuggestions(data);
+  } catch(e) { hideSuggestions(); }
+}
+
+function showSuggestions(items) {
+  const box = document.getElementById('address-suggestions');
+  box.innerHTML = '';
+  if (!items.length) { hideSuggestions(); return; }
+  items.forEach(item => {
+    const parts = item.display_name.split(',');
+    const short = parts.slice(0, 2).join(',').trim();
+    const div = document.createElement('div');
+    div.className = 'address-suggestion-item';
+    div.textContent = short;
+    div.addEventListener('click', () => {
+      document.getElementById('input-street').value = short;
+      hideSuggestions();
+      document.getElementById('input-house').focus();
+    });
+    box.appendChild(div);
+  });
+  box.classList.add('visible');
+}
+
+function hideSuggestions() {
+  document.getElementById('address-suggestions').classList.remove('visible');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#input-street') && !e.target.closest('#address-suggestions')) {
+    hideSuggestions();
+  }
+});
+</script>
+</body>
+</html>

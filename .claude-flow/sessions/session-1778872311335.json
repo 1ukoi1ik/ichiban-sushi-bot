@@ -1,0 +1,23 @@
+{
+  "id": "session-1778872311335",
+  "startedAt": "2026-05-15T19:11:51.335Z",
+  "cwd": "/home/lukoiik/android/GITHUB/ТГБОТ",
+  "context": {
+    "lastMatchedPatterns": [
+      "mem-mempalace_troubleshooting--------------------",
+      "mem-mempalace_troubleshooting-------------------------------",
+      "mem-mempalace_troubleshooting-------------------------------",
+      "mem-reference_skills_and_mcp-pixijs---------------------cla",
+      "mem-project_qwen_rules-github"
+    ]
+  },
+  "metrics": {
+    "edits": 49,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "updatedAt": "2026-05-15T20:28:51.806Z",
+  "endedAt": "2026-05-15T20:35:28.129Z",
+  "duration": 5016794
+}

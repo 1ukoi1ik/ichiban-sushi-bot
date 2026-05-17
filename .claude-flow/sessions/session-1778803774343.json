@@ -1,0 +1,14 @@
+{
+  "id": "session-1778803774343",
+  "startedAt": "2026-05-15T00:09:34.343Z",
+  "cwd": "/home/lukoiik/android/GITHUB/ТГБОТ",
+  "context": {},
+  "metrics": {
+    "edits": 0,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-05-15T09:44:19.829Z",
+  "duration": 34485486
+}
