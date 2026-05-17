@@ -64,6 +64,19 @@ def init_db():
                     counter INTEGER DEFAULT 0
                 )
             """)
+            # нормализация телефонов: убрать форматирование, оставить +7XXXXXXXXXX
+            cur.execute("""
+                UPDATE clients
+                SET phone = '+7' || right(regexp_replace(phone, '[^0-9]', '', 'g'), 10)
+                WHERE phone IS NOT NULL AND phone != ''
+                  AND phone NOT SIMILAR TO '\+7[0-9]{10}'
+            """)
+            cur.execute("""
+                UPDATE orders
+                SET phone = '+7' || right(regexp_replace(phone, '[^0-9]', '', 'g'), 10)
+                WHERE phone IS NOT NULL AND phone != ''
+                  AND phone NOT SIMILAR TO '\+7[0-9]{10}'
+            """)
         conn.commit()
 
 
@@ -290,8 +303,15 @@ async def telegram_webhook(request: Request):
 def norm_phone(p: str) -> str:
     if not p:
         return p
-    p = p.strip()
-    return p if p.startswith('+') else f'+{p}'
+    digits = ''.join(filter(str.isdigit, p))
+    if not digits:
+        return p
+    # убираем leading 7 или 8 если номер начинается с них
+    if len(digits) == 11 and digits[0] in ('7', '8'):
+        digits = digits[1:]
+    if len(digits) == 10:
+        return f'+7{digits}'
+    return f'+{digits}'
 
 
 class ClientPhone(BaseModel):
