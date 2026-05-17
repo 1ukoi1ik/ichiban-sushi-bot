@@ -55,6 +55,7 @@ def init_db():
                     name TEXT,
                     phone TEXT,
                     addresses TEXT[] DEFAULT '{}',
+                    avatar TEXT,
                     updated_at TIMESTAMP DEFAULT NOW()
                 )
             """)
@@ -64,6 +65,7 @@ def init_db():
                     counter INTEGER DEFAULT 0
                 )
             """)
+            cur.execute("ALTER TABLE clients ADD COLUMN IF NOT EXISTS avatar TEXT")
             # нормализация телефонов: убрать форматирование, оставить +7XXXXXXXXXX
             cur.execute("""
                 UPDATE clients
@@ -425,6 +427,23 @@ async def save_profile_address(data: ClientAddress):
     return {"ok": True}
 
 
+class AvatarData(BaseModel):
+    user_id: int
+    avatar: str
+
+@app.post("/profile/avatar")
+async def set_avatar(data: AvatarData):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO clients (user_id, avatar, updated_at)
+                VALUES (%s, %s, NOW())
+                ON CONFLICT (user_id) DO UPDATE SET avatar = EXCLUDED.avatar, updated_at = NOW()
+            """, (data.user_id, data.avatar))
+        conn.commit()
+    return {"ok": True}
+
+
 @app.get("/profile/{user_id}")
 async def get_profile(user_id: int):
     with get_db() as conn:
@@ -446,7 +465,7 @@ async def get_profile(user_id: int):
                 WHERE user_id=%s AND address IS NOT NULL AND address != ''
             """, (user_id,))
             order_addresses = [r["address"] for r in cur.fetchall()]
-            cur.execute("SELECT name, phone, addresses FROM clients WHERE user_id=%s", (user_id,))
+            cur.execute("SELECT name, phone, addresses, avatar FROM clients WHERE user_id=%s", (user_id,))
             client_row = cur.fetchone()
 
     if not agg_row and not client_row:
@@ -473,6 +492,7 @@ async def get_profile(user_id: int):
         "total_sum": total_sum,
         "month_sum": int(agg_row["month_sum"] or 0) if agg_row else 0,
         "discount": discount,
+        "avatar": client_row["avatar"] if client_row and client_row["avatar"] else None,
     }
 
 
