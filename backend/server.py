@@ -436,6 +436,18 @@ async def get_profile(user_id: int):
     }
 
 
+@app.get("/profile/by-phone/{phone}")
+async def get_profile_by_phone(phone: str):
+    phone = norm_phone(phone)
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT user_id FROM clients WHERE phone=%s LIMIT 1", (phone,))
+            row = cur.fetchone()
+    if not row:
+        return {"ok": False}
+    return {"ok": True, "user_id": row["user_id"]}
+
+
 @app.get("/suggest/address")
 async def suggest_address(q: str):
     if not q or len(q) < 2:
