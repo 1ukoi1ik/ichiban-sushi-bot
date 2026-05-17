@@ -15,6 +15,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 DATABASE_URL = os.getenv("DATABASE_URL")
+DADATA_KEY = os.getenv("DADATA_KEY", "")
 TG_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 STEP_LABELS = {0: "Отправлен 📨", 1: "Принят ✓", 2: "Готовим 👨‍🍳", 3: "В пути 🛵", 4: "Доставлен 🏠"}
@@ -348,6 +349,25 @@ async def get_profile(user_id: int):
         "month_sum": int(order_row["month_sum"] or 0) if order_row else 0,
         "discount": discount,
     }
+
+
+@app.get("/suggest/address")
+async def suggest_address(q: str):
+    if not q or len(q) < 2:
+        return {"suggestions": []}
+    async with httpx.AsyncClient() as client:
+        try:
+            r = await client.post(
+                "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+                headers={"Authorization": f"Token {DADATA_KEY}", "Content-Type": "application/json"},
+                json={"query": q, "count": 5, "restrict_value": True, "locations": [{"city": "Луганск"}]},
+                timeout=3.0,
+            )
+            data = r.json()
+            suggestions = [s["unrestricted_value"] for s in data.get("suggestions", [])]
+            return {"suggestions": suggestions}
+        except Exception:
+            return {"suggestions": []}
 
 
 @app.get("/health")
