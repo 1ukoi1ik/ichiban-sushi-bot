@@ -230,7 +230,7 @@ _welcome_file_id = None
 async def send_welcome(chat_id: int, client: httpx.AsyncClient):
     global _welcome_file_id
     keyboard = {"inline_keyboard": [
-        [{"text": "🍣 Сделать заказ", "web_app": {"url": MINI_APP_URL}}],
+        [{"text": "🍣 Сделать заказ", "web_app": {"url": MINI_APP_URL + "?reset=1"}}],
         [{"text": "🎟️ Карта гостя", "web_app": {"url": MINI_APP_URL + "?card=1"}}],
     ]}
     resp = await client.post(f"{TG_API}/sendAnimation", json={
