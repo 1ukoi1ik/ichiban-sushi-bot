@@ -277,6 +277,33 @@ class ClientAddress(BaseModel):
     address: str
 
 
+class ClientUpdate(BaseModel):
+    user_id: int
+    name: str = ""
+    phone: str = ""
+
+
+@app.post("/profile/update")
+async def update_profile(data: ClientUpdate):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO clients (user_id, name, phone, updated_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT (user_id) DO UPDATE
+                SET name = CASE WHEN %s != '' THEN %s ELSE clients.name END,
+                    phone = CASE
+                        WHEN %s != '' AND (clients.phone IS NULL OR clients.phone = '') THEN %s
+                        ELSE clients.phone
+                    END,
+                    updated_at = NOW()
+            """, (data.user_id, data.name, data.phone,
+                  data.name, data.name,
+                  data.phone, data.phone))
+        conn.commit()
+    return {"ok": True}
+
+
 @app.post("/profile/phone")
 async def save_profile_phone(data: ClientPhone):
     with get_db() as conn:
