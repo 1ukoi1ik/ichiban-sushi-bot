@@ -292,10 +292,7 @@ async def update_profile(data: ClientUpdate):
                 VALUES (%s, %s, %s, NOW())
                 ON CONFLICT (user_id) DO UPDATE
                 SET name = CASE WHEN %s != '' THEN %s ELSE clients.name END,
-                    phone = CASE
-                        WHEN %s != '' AND (clients.phone IS NULL OR clients.phone = '') THEN %s
-                        ELSE clients.phone
-                    END,
+                    phone = CASE WHEN %s != '' THEN %s ELSE clients.phone END,
                     updated_at = NOW()
             """, (data.user_id, data.name, data.phone,
                   data.name, data.name,
