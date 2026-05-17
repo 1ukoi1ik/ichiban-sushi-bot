@@ -357,21 +357,23 @@ async def get_profile(user_id: int):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT name, phone, address,
-                       COUNT(*) as total_orders,
+                SELECT COUNT(*) as total_orders,
                        SUM(CASE WHEN created_at >= date_trunc('month', NOW()) THEN total ELSE 0 END) as month_sum
                 FROM orders WHERE user_id=%s
-                GROUP BY name, phone, address
-                ORDER BY MAX(created_at) DESC LIMIT 1
+            """, (user_id,))
+            agg_row = cur.fetchone()
+            cur.execute("""
+                SELECT name, phone, address FROM orders WHERE user_id=%s
+                ORDER BY created_at DESC LIMIT 1
             """, (user_id,))
             order_row = cur.fetchone()
             cur.execute("SELECT name, phone, addresses FROM clients WHERE user_id=%s", (user_id,))
             client_row = cur.fetchone()
 
-    if not order_row and not client_row:
+    if not agg_row and not client_row:
         return {"ok": True, "new_client": True}
 
-    total = int(order_row["total_orders"]) if order_row else 0
+    total = int(agg_row["total_orders"]) if agg_row else 0
     discount = 15 if total >= 20 else 10 if total >= 10 else 5 if total >= 5 else 0
 
     name = (client_row["name"] if client_row and client_row["name"] else None) or (order_row["name"] if order_row else "") or ""
@@ -387,7 +389,7 @@ async def get_profile(user_id: int):
         "phone": phone,
         "addresses": addresses,
         "total_orders": total,
-        "month_sum": int(order_row["month_sum"] or 0) if order_row else 0,
+        "month_sum": int(agg_row["month_sum"] or 0) if agg_row else 0,
         "discount": discount,
     }
 
