@@ -431,6 +431,7 @@ async def get_profile(user_id: int):
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT COUNT(*) as total_orders,
+                       COALESCE(SUM(total), 0) as total_sum,
                        SUM(CASE WHEN created_at >= date_trunc('month', NOW()) THEN total ELSE 0 END) as month_sum
                 FROM orders WHERE user_id=%s
             """, (user_id,))
@@ -452,7 +453,8 @@ async def get_profile(user_id: int):
         return {"ok": True, "new_client": True}
 
     total = int(agg_row["total_orders"]) if agg_row else 0
-    discount = 15 if total >= 20 else 10 if total >= 10 else 5 if total >= 5 else 0
+    total_sum = int(agg_row["total_sum"] or 0) if agg_row else 0
+    discount = 15 if total_sum >= 15000 else 10 if total_sum >= 7000 else 5 if total_sum >= 3000 else 0
 
     name = (client_row["name"] if client_row and client_row["name"] else None) or (order_row["name"] if order_row else "") or ""
     phone = norm_phone((client_row["phone"] if client_row and client_row["phone"] else None) or (order_row["phone"] if order_row else "") or "")
@@ -468,6 +470,7 @@ async def get_profile(user_id: int):
         "phone": phone,
         "addresses": addresses,
         "total_orders": total,
+        "total_sum": total_sum,
         "month_sum": int(agg_row["month_sum"] or 0) if agg_row else 0,
         "discount": discount,
     }
