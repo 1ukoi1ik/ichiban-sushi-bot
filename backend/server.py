@@ -364,7 +364,7 @@ async def save_profile_phone(data: ClientPhone):
     return {"ok": True}
 
 
-@app.delete("/profile/address")
+@app.post("/profile/address/delete")
 async def delete_profile_address(data: ClientAddress):
     with get_db() as conn:
         with conn.cursor() as cur:
