@@ -364,6 +364,18 @@ async def save_profile_phone(data: ClientPhone):
     return {"ok": True}
 
 
+@app.delete("/profile/address")
+async def delete_profile_address(data: ClientAddress):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE clients SET addresses = array_remove(addresses, %s), updated_at = NOW()
+                WHERE user_id = %s
+            """, (data.address, data.user_id))
+        conn.commit()
+    return {"ok": True}
+
+
 @app.post("/profile/address")
 async def save_profile_address(data: ClientAddress):
     with get_db() as conn:
